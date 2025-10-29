@@ -1,18 +1,13 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useCookies } from 'vue3-cookies';
-import { updateAbility } from '@/plugins/ability';
 import { AuthService } from '@/services';
 import { useGlobalStore } from '@/stores';
 
 export const useSessionStore = defineStore('SessionStore', () => {
-    const globalStore = useGlobalStore();
     const { cookies } = useCookies();
     const user = ref(null);
-    const menuItems = ref([]);
     const myCompany = ref({});
-    const permissions = ref([]);
-    const userRole = ref({});
     const intendedRoute = ref(sessionStorage.getItem('intendedRoute'));
 
     const startUserSession = (data) => {
@@ -32,18 +27,17 @@ export const useSessionStore = defineStore('SessionStore', () => {
     };
 
     const clearSessionState = () => {
-        cookies.remove('tmb_cookie', null);
+        cookies.remove('tmb_customer_portal_cookie', null);
         sessionStorage.removeItem('email');
         user.value = null;
-        permissions.value = [];
     };
 
     const setCookie = (value) => {
-        cookies.set('tmb_cookie', value, '7d');
+        cookies.set('tmb_customer_portal_cookie', value, '7d');
     };
 
     const getCookie = () => {
-        return cookies.get('tmb_cookie');
+        return cookies.get('tmb_customer_portal_cookie');
     };
 
     const setEmail = (value) => {
@@ -58,11 +52,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
         try {
             const res = (await AuthService.me()).data;
             user.value = res.data;
-            permissions.value = res.permissions;
-            menuItems.value = res.menu_items;
             myCompany.value = res.my_company;
-            userRole.value = res.role;
-            updateAbility(permissions.value);
             return user.value;
         } catch (error) {
             throw error;
@@ -86,10 +76,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
         clearSessionState,
         me,
         user,
-        permissions,
-        menuItems,
         myCompany,
-        userRole,
 
         setEmail,
         setCookie,

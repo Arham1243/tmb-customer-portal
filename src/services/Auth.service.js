@@ -1,5 +1,5 @@
 import AxiosService from './Axios.service';
-const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/auth`;
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/customer-portal/auth`;
 
 export const login = (payload) => {
     return AxiosService.post(`${BASE_URL}/login`, payload);

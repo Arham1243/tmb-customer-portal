@@ -1,27 +1,15 @@
 import AppLayout from '@/layout/AppLayout.vue';
 import AuthLayout from '@/layout/AuthLayout.vue';
 
-const modules = import.meta.glob('@/modules/*/index.js', { eager: true });
-const items = [];
-Object.keys(modules).forEach((path) => {
-    let module = modules[path];
-    module = module.default;
-    module.routes.map((routes) => {
-        items.push(routes);
-    });
-});
-
 export default [
     {
         path: '/',
-        name: 'Home',
         component: AppLayout,
         children: [
             {
                 path: '/',
                 name: 'Dashboard',
-                meta: { breadcrumb: [{ label: 'Dashboard' }] },
-                component: () => import('@/views/dashboards/Ecommerce.vue')
+                component: () => import('@/views/dashboard/index.vue')
             }
         ]
     },
@@ -52,25 +40,7 @@ export default [
         ]
     },
     {
-        path: '/profile',
-        component: AppLayout,
-        children: [
-            {
-                path: '',
-                name: 'Profile',
-                component: () => import('@/views/profile/index.vue'),
-                meta: {
-                    breadcrumb: [
-                        { label: 'Dashboard', route: '/' },
-                        { label: 'Profile' }
-                    ]
-                }
-            }
-        ]
-    },
-    {
         path: '/:pathMatch(.*)*',
         component: () => import('@/views/errors/NotFound.vue')
-    },
-    ...items
+    }
 ];
