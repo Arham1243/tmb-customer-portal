@@ -33,7 +33,7 @@ const goBack = () => {
 </script>
 <template>
     <div>
-        <h4 class="text-[1.75rem] font-bold text-center mb-4">
+        <h4 class="text-3xl font-bold text-center mb-4">
             Forgot Password
         </h4>
 

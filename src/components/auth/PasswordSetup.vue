@@ -61,7 +61,7 @@ const pushRoute = (name) => {
 </script>
 <template>
     <div>
-        <h4 class="text-[1.75rem] font-bold text-center mb-12">
+        <h4 class="text-3xl font-bold text-center mb-12">
             Let's set a password for your account
         </h4>
 

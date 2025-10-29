@@ -36,7 +36,10 @@ const login = async () => {
 
 <template>
     <div>
-        <h4 class="text-[1.75rem] font-bold text-center mb-12">Login</h4>
+        <h4 class="text-3xl font-bold text-center mb-4">
+            Customer Portal
+        </h4>
+        <p class="text-center mb-12 text-gray-700">Sign in to your account</p>
         <form @submit.prevent="login">
             <div class="grid">
                 <div class="mb-6 col-span-12">
