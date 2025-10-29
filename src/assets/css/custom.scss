@@ -73,3 +73,7 @@ th {
 .mx-calendar-week-mode .mx-date-row .cell.active {
     color: #fff !important;
 }
+.link-active {
+    background: var(--p-button-outlined-primary-hover-background) !important;
+    color: var(--p-button-outlined-primary-color) !important;
+}

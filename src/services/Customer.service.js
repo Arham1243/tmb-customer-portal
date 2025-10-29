@@ -8,7 +8,11 @@ export const searchInvoices = (payload, params) => {
 };
 
 export const exportReport = (resource, payload) => {
-    return AxiosService.post(`${BASE_URL}/export-report/${resource}`, payload, {
-        responseType: 'blob'
-    });
+    return AxiosService.post(
+        `${BASE_URL}/customer-portal/export-report/${resource}`,
+        payload,
+        {
+            responseType: 'blob'
+        }
+    );
 };

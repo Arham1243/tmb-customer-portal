@@ -161,7 +161,7 @@ const openInvoicePreview = (data) => {
     <TitleHeader>
         <template #title>
             <div>
-                <h1 class="text-xl sm:text-3xl font-bold">
+                <h1 class="text-xl sm:text-2xl font-bold">
                     Transaction History
                 </h1>
             </div>

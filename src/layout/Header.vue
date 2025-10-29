@@ -1,9 +1,10 @@
 <script setup>
 import { ref } from 'vue';
-import { useSessionStore, useAuthStore } from '@/stores';
+import { useSessionStore } from '@/stores';
 import { useRoute, useRouter } from 'vue-router';
 const sessionStore = useSessionStore();
 const currentUser = sessionStore.user;
+const myCompany = sessionStore.myCompany;
 
 const router = useRouter();
 const route = useRoute();
@@ -96,10 +97,7 @@ const isActive = (name) => route.name === name;
             </div>
         </div>
     </div>
+    <div class="text-center mt-10 font-bold text-2xl">
+        {{ myCompany.name }}
+    </div>
 </template>
-<style scoped>
-.link-active {
-    background: var(--p-button-outlined-primary-hover-background) !important;
-    color: var(--p-button-outlined-primary-color) !important;
-}
-</style>
