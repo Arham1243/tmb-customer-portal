@@ -1,0 +1,48 @@
+<script setup>
+import { computed } from 'vue';
+
+const props = defineProps({
+    status: {
+        type: String
+    }
+});
+
+const tagProps = computed(() => {
+    const rawStatus = props.status || '-';
+    const value = rawStatus.replace(/_/g, ' ').toUpperCase();
+
+    switch (rawStatus.toLowerCase()) {
+        case 'yes':
+        case 'active':
+        case 'billed':
+        case 'paid':
+        case 'approved':
+            return { value, severity: 'success' };
+        case 'no':
+        case 'inactive':
+            return { value, severity: 'danger' };
+        case 'unbilled':
+        case 'pending':
+        case 'submitted':
+        case 'partially_paid':
+            return { value, severity: 'warn' };
+        case 'draft':
+        case 'unpaid':
+            return { value, class: '!bg-gray-200 !text-gray-500' };
+        case 'new':
+            return { value, severity: 'info' };
+        default:
+            return { value, severity: 'contrast' };
+    }
+});
+</script>
+
+<template>
+    <Tag
+        class="!text-xs"
+        v-bind="$attrs"
+        :value="tagProps.value"
+        :severity="tagProps.severity"
+        :class="tagProps.class"
+    />
+</template>

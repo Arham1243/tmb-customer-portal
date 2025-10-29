@@ -1,0 +1,39 @@
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+name: 🚀 Deploy website on push
+
+jobs:
+    web-deploy:
+        name: 🎉 Deploy
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
+        steps:
+            - name: 🚚 Get latest code
+              uses: actions/checkout@v2
+
+            - name: 📦 Build Vue app
+              run: |
+                  npm install
+                  npm run build
+              env:
+                  VITE_API_BASE_URL: https://demo-agreedsolutions.com/backend
+
+            - name: 📂 Sync frontend build
+              uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+              with:
+                  server: ${{ secrets.FTP_SERVER }}
+                  username: ${{ secrets.FTP_USERNAME }}
+                  password: ${{ secrets.FTP_PASSWORD }}
+                  protocol: ftps
+                  port: 21
+                  security: loose
+                  timeout: 120000
+                  local-dir: ./dist/
+                  server-dir: /
+                  exclude: |
+                      backend/**
+                  dangerous-clean-slate: false

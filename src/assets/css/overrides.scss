@@ -1,0 +1,78 @@
+// Primevue overrides
+.p-paginator {
+    justify-content: flex-end!important;
+    padding: 1rem !important;
+}
+.p-datatable-header{
+    padding-inline: 0 !important;
+}
+.global-breadcrumbs nav.p-breadcrumb.p-component {
+    padding: 0 !important;
+    background: transparent !important;
+}
+.p-breadcrumb-item-link {
+    white-space: nowrap;
+}
+.p-button .p-badge {
+    --p-button-badge-size: 1.27rem;
+    height: 1.22rem !important   ;
+}
+.unhighlight-row-table .p-datatable-selectable-row.p-datatable-row-selected:not(.highlight-row){
+    background: #fff !important;
+    color: #000 !important;
+}
+.highlight-disabled-checkbox.p-checkbox.p-checkbox-checked.p-disabled .p-checkbox-box {
+    color: #fff !important;
+    opacity: 0.8 !important;
+    border-color: var(--p-checkbox-checked-border-color) !important;
+    background: var(--p-checkbox-checked-background) !important;
+}
+.highlight-disabled-checkbox.p-checkbox.p-checkbox-checked.p-disabled .p-checkbox-icon {
+    color: var(--p-checkbox-icon-checked-color) !important;
+}
+.remove-datatable-header-padding .p-datatable-header {
+    padding: 0 !important;
+}
+
+// p-togglebutton
+.p-selectbutton {
+    border-radius: 100px;
+    overflow: hidden;
+}
+.p-togglebutton .p-togglebutton-content{
+    border-radius: 100px;
+    overflow: hidden;
+    padding: 0.5rem 1.75rem !important;
+    background: transparent !important;
+}
+.p-togglebutton.p-togglebutton-checked .p-togglebutton-content{
+    color: #fff !important;
+    background: var(--p-primary-color) !important;
+}
+.p-togglebutton.p-togglebutton-checked {
+    pointer-events: none;
+}
+.layout-sidebar .layout-menu-container::-webkit-scrollbar {
+    width: 8px;
+}
+.layout-sidebar .layout-menu-container::-webkit-scrollbar-thumb {
+    background:#ffffffce; 
+    border-radius: 100px;
+}
+.layout-sidebar .layout-menu-container::-webkit-scrollbar-thumb:hover {
+    background: #ffffffe7; 
+}
+th.amount-column .p-datatable-column-header-content{
+    display: flex;
+    justify-content: flex-end;
+    text-align: right;
+}
+td.amount-column{
+    text-align: right !important;
+}
+.layout-topbar .topbar-menu li.topbar-profile button {
+    border: 1px solid var(--p-primary-color);
+}
+.hide-select-all-checkbox .p-datatable-column-header-content .p-checkbox {
+    display: none;
+}

@@ -1,0 +1,15 @@
+export * as CompanyService from './Company.service';
+export * as ContactTypeService from './ContactType.service';
+export * as ProjectTypeService from './ProjectType.service';
+export * as ProjectTemplateTaskService from './ProjectTemplateTask.service';
+export * as RevenueCategoryService from './RevenueCategory.service';
+export * as ExpenseCategoryService from './ExpenseCategory.service';
+export * as MinimumChargeService from './MinimumCharge.service';
+export * as PaymentMethodService from './PaymentMethod.service';
+export * as PaymentTermService from './PaymentTerm.service';
+export * as DeductionTypeService from './DeductionType.service';
+export * as CreditCardService from './CreditCard.service';
+export * as RoleService from './Role.service';
+export * as UserService from './User.service';
+export * as EmailTemplateService from './EmailTemplate.service';
+export * as InvoiceTemplateService from './InvoiceTemplate.service';

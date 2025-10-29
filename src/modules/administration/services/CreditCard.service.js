@@ -1,0 +1,33 @@
+import AxiosService from '@/services/Axios.service';
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api`;
+
+export const search = (payload, params) => {
+    return AxiosService.post(`${BASE_URL}/credit-cards/search`, payload, {
+        params
+    });
+};
+
+export const list = (payload, params) => {
+    return AxiosService.post(`${BASE_URL}/credit-cards/list`, payload, {
+        params
+    });
+};
+
+export const create = (payload) => {
+    return AxiosService.post(`${BASE_URL}/credit-cards`, payload);
+};
+
+export const update = (id, payload) => {
+    return AxiosService.put(`${BASE_URL}/credit-cards/${id}`, payload);
+};
+
+export const changeStatus = (id, payload) => {
+    return AxiosService.post(
+        `${BASE_URL}/credit-cards/${id}/change-status`,
+        payload
+    );
+};
+
+export const deleteItem = (id) => {
+    return AxiosService.delete(`${BASE_URL}/credit-cards/${id}`);
+};

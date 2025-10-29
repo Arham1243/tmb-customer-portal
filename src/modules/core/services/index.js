@@ -1,0 +1,11 @@
+export * as CustomerService from './Customer.service';
+export * as CustomerGroupService from './CustomerGroup.service';
+export * as ClientTypeService from './ClientType.service';
+export * as CustomerContactService from './CustomerContact.service';
+export * as CustomerUserService from './CustomerUser.service';
+export * as ProjectService from './Project.service';
+export * as ProjectAttachmentService from './ProjectAttachment.service';
+export * as ProjectTaskService from './ProjectTask.service';
+export * as ExpenseService from './Expense.service';
+export * as TimesheetService from './Timesheet.service';
+export * as LookupTablePreferenceService from './LookupTablePreference.service';
