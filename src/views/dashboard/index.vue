@@ -1,3 +1,3 @@
 <script setup></script>
 
-<template>asdasd</template>
+<template>Dashboard</template>

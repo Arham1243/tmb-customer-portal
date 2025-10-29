@@ -10,6 +10,16 @@ export default [
                 path: '/',
                 name: 'Dashboard',
                 component: () => import('@/views/dashboard/index.vue')
+            },
+            {
+                path: 'history',
+                name: 'History',
+                component: () => import('@/views/dashboard/history.vue')
+            },
+            {
+                path: 'profile',
+                name: 'Profile',
+                component: () => import('@/views/dashboard/profile.vue')
             }
         ]
     },

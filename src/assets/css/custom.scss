@@ -1,3 +1,9 @@
+html{
+    font-size: 15px;
+}
+body{
+    background: #F8FAFC;
+}
 .primary-bg{
     background-color: var(--primary-color);
 }
@@ -17,53 +23,7 @@ label.required::after {
     color: red;
     margin-left: 4px;
 }
-th {
-    white-space: nowrap;
-}
-.cursor-pointer-rows tbody tr{
-    cursor: pointer;
-}
-.tabs-card .p-card-body{
-    padding-top: 0.85rem;
-}
-.row-pointers tbody tr{
-    cursor: pointer;
-}
-.layout-sidebar .layout-menu ul a.active-route {
-    background: #fff;
+.router-link-active {
     color: var(--primary-color);
-}
-
-.layout-sidebar .layout-menu ul a.active-route i {
-    color: var(--primary-color);
-}
-.bg-custom-gray{
-    background: #e9e9eb !important;
-}
-
-/* vue date picker */
-.mx-input{
-    padding: 0.55rem var(--p-inputtext-padding-x) !important;
-    height: auto !important;
-    padding-right: 30px !important;
-    color: var(--p-inputtext-color) !important;
-    border: 1px solid var(--p-inputtext-border-color) !important;
-    border-radius: var(--p-inputtext-border-radius) !important;
-    transition: background var(--p-inputtext-transition-duration), color var(--p-inputtext-transition-duration), border-color var(--p-inputtext-transition-duration), outline-color var(--p-inputtext-transition-duration), box-shadow var(--p-inputtext-transition-duration) !important;
-}
-.mx-input:hover, .mx-input:focus{
-    border-color: var(--p-inputtext-hover-border-color) !important;
-}
-.mx-calendar-content .cell.active{
-    background: var(--primary-color) !important;
-}
-.mx-input:disabled, .mx-input.disabled{
-    background: var(--p-inputtext-disabled-background) !important;
-    color: var(--p-inputtext-disabled-color) !important;
-}
-.timesheet-range-picker{
-    width: 40% !important;
-}
-.mx-calendar-week-mode .mx-date-row .cell.active {
-    color: #fff !important;
+    font-weight: 500;
 }

@@ -1,13 +1,15 @@
 <script setup>
 import { ref } from 'vue';
 import { useSessionStore, useAuthStore } from '@/stores';
-import { useRouter } from 'vue-router';
-const authStore = useAuthStore();
+import { useRoute, useRouter } from 'vue-router';
 const sessionStore = useSessionStore();
 const currentUser = sessionStore.user;
+const myCompany = sessionStore.myCompany;
 
 const router = useRouter();
+const route = useRoute();
 const busy = ref(false);
+
 const logout = async () => {
     try {
         busy.value = true;
@@ -22,12 +24,83 @@ const logout = async () => {
 const pushRoute = (name) => {
     router.push({ name });
 };
+const isActive = (name) => route.name === name;
 </script>
 
 <template>
-    custom header {{ currentUser.name }}
+    <div class="bg-white shadow-sm py-4 px-6">
+        <div class="container mx-auto px-4 flex items-center justify-between">
+            <div class="flex items-center space-x-8">
+                <div class="font-bold text-xl text-gray-800">
+                    Customer Portal
+                </div>
+                <nav class="hidden md:flex">
+                    <Button
+                        icon="pi pi-file"
+                        label="Invoices"
+                        @click="pushRoute('Dashboard')"
+                        severity="secondary"
+                        text
+                        :loading="busy"
+                        :disabled="busy"
+                        :class="{
+                            'link-active': isActive('Dashboard')
+                        }"
+                    />
 
-    <Button @click="logout" :loading="busy" :disabled="busy">Logout</Button>
+                    <Button
+                        icon="pi pi-history"
+                        label="History"
+                        @click="pushRoute('History')"
+                        severity="secondary"
+                        text
+                        :loading="busy"
+                        :disabled="busy"
+                        :class="{
+                            'link-active': isActive('History')
+                        }"
+                    />
+
+                    <Button
+                        icon="pi pi-user"
+                        label="Profile"
+                        @click="pushRoute('Profile')"
+                        severity="secondary"
+                        text
+                        :loading="busy"
+                        :disabled="busy"
+                        :class="{
+                            'link-active': isActive('Profile')
+                        }"
+                    />
+                </nav>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <div class="font-medium text-gray-800">
+                        {{ currentUser.name }}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        {{ currentUser.email }}
+                    </div>
+                </div>
+                <Button
+                    icon="pi pi-sign-out"
+                    label="Sign Out"
+                    @click="logout"
+                    severity="secondary"
+                    text
+                    :loading="busy"
+                    :disabled="busy"
+                />
+            </div>
+        </div>
+    </div>
 </template>
-
-<style lang="scss" scoped></style>
+<style scoped>
+.link-active {
+    background: var(--p-button-outlined-primary-hover-background) !important;
+    color: var(--p-button-outlined-primary-color) !important;
+}
+</style>
