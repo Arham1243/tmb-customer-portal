@@ -6,3 +6,9 @@ export const searchInvoices = (payload, params) => {
         params
     });
 };
+
+export const exportReport = (resource, payload) => {
+    return AxiosService.post(`${BASE_URL}/export-report/${resource}`, payload, {
+        responseType: 'blob'
+    });
+};

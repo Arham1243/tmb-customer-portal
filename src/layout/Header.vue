@@ -4,7 +4,6 @@ import { useSessionStore, useAuthStore } from '@/stores';
 import { useRoute, useRouter } from 'vue-router';
 const sessionStore = useSessionStore();
 const currentUser = sessionStore.user;
-const myCompany = sessionStore.myCompany;
 
 const router = useRouter();
 const route = useRoute();

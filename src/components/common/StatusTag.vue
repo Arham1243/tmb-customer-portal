@@ -16,6 +16,7 @@ const tagProps = computed(() => {
         case 'active':
         case 'billed':
         case 'paid':
+        case 'payment':
         case 'approved':
             return { value, severity: 'success' };
         case 'no':
@@ -24,6 +25,7 @@ const tagProps = computed(() => {
         case 'unbilled':
         case 'pending':
         case 'submitted':
+        case 'invoice':
         case 'partially_paid':
             return { value, severity: 'warn' };
         case 'draft':

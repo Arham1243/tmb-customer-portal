@@ -1,25 +1,44 @@
 <script setup>
-import { onBeforeMount, ref } from 'vue';
-import { useCustomerStore } from '@/stores';
-import { useGlobalStore } from '@/stores';
+import { onBeforeMount, ref, watch } from 'vue';
+import { useCustomerStore, useSessionStore } from '@/stores';
 import { PaginationOptions, SortFilterOptions } from '@/config';
 import { useHelpers } from '@/composables';
+import { useReportExport } from '@/composables/useReportExport';
 
+const sessionStore = useSessionStore();
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}`;
+const { exportReport } = useReportExport();
 const { formatDate, moneyFormat } = useHelpers();
 
 const customerStore = useCustomerStore();
-const globalStore = useGlobalStore();
 
 const pagination = new PaginationOptions();
-const sortFilters = new SortFilterOptions();
-const searchText = ref('');
-const menu = ref();
 const loading = ref(false);
 const items = ref([]);
 const totalRecords = ref();
+const exportMenu = ref(null);
+const currentUser = sessionStore.user;
+const filters = ref({
+    date_range: [],
+    transaction_type: null
+});
+
 onBeforeMount(async () => {
     await getItems();
 });
+
+watch(
+    () => filters.value.date_range,
+    (newVal, oldVal) => {
+        if (Array.isArray(newVal) && newVal.length > 0) getItems();
+    },
+    { deep: true }
+);
+
+const transactionTypeOptions = [
+    { name: 'Payment', code: 'payment' },
+    { name: 'Invoice', code: 'invoice' }
+];
 
 const exportMenuItems = [
     {
@@ -41,6 +60,10 @@ const onPageChange = (event) => {
     getItems();
 };
 
+const showExportMenu = (event) => {
+    exportMenu.value.toggle(event);
+};
+
 const exportFilteredReport = async ({ resource, format }) => {
     try {
         loading.value = true;
@@ -50,7 +73,12 @@ const exportFilteredReport = async ({ resource, format }) => {
 
         const payload = {
             format,
-            columns: visibleColumns.value.map((c) => c.field),
+            columns: [
+                'payment_status',
+                'invoice_number',
+                'invoice_date',
+                'outstanding_balance'
+            ],
             filters: filtersPayload,
             customFilters: customFilters
         };
@@ -63,11 +91,59 @@ const exportFilteredReport = async ({ resource, format }) => {
     }
 };
 
+const clearFilters = () => {
+    filters.value = {
+        date_range: [],
+        transaction_type: null
+    };
+    getItems();
+};
+
+const makeFiltersPayload = () => {
+    const filtersPayload = [
+        {
+            field: 'customer_id',
+            operator: '=',
+            value: currentUser?.id
+        }
+    ];
+    if (filters.value.transaction_type) {
+        if (filters.value.transaction_type === 'payment') {
+            filtersPayload.push({
+                field: 'payment_status',
+                operator: '=',
+                value: 'paid'
+            });
+        } else if (filters.value.transaction_type === 'invoice') {
+            filtersPayload.push({
+                field: 'payment_status',
+                operator: 'in',
+                value: ['unpaid', 'partially_paid']
+            });
+        }
+    }
+    return filtersPayload;
+};
+
+const makeCustomFiltersPayload = () => {
+    const customFilters = [];
+    if (filters.value.date_range.length) {
+        customFilters.push({
+            field: 'invoice_date_range',
+            value: filters.value.date_range
+        });
+    }
+    return customFilters;
+};
+
 const getItems = async () => {
     try {
         loading.value = true;
         const params = { ...pagination.getPageParams() };
-        const payload = sortFilters.getSortFilters(searchText.value);
+        const payload = {
+            filters: makeFiltersPayload(),
+            customFilters: makeCustomFiltersPayload()
+        };
         const res = await customerStore.searchInvoices(payload, params);
         items.value = res.data;
         totalRecords.value = res.meta.total;
@@ -75,13 +151,17 @@ const getItems = async () => {
         loading.value = false;
     }
 };
+
+const openInvoicePreview = (data) => {
+    window.open(`${API_BASE_URL}/invoice/${data.id}/preview`, '_blank');
+};
 </script>
 
 <template>
     <TitleHeader>
         <template #title>
             <div>
-                <h1 class="text-2xl sm:text-3xl font-bold">
+                <h1 class="text-xl sm:text-3xl font-bold">
                     Transaction History
                 </h1>
             </div>
@@ -108,38 +188,86 @@ const getItems = async () => {
                 :rows="pagination.limit"
                 :total-records="totalRecords"
                 :loading="loading"
-                @sort="onSortChange"
                 @page="onPageChange"
             >
                 <template #header>
-                    
+                    <div
+                        class="grid grid-cols-12 items-end gap-4 space-y-1 mb-10"
+                    >
+                        <div class="col-span-4">
+                            <label
+                                for="status"
+                                class="mb-2 block font-medium text-gray-700"
+                            >
+                                Transaction Type
+                            </label>
+                            <InputField
+                                showClear
+                                v-model="filters.transaction_type"
+                                @change="getItems()"
+                                id="transactionType"
+                                class="w-full"
+                                placeholder="Select"
+                                variant="dropdown"
+                                optionLabel="name"
+                                optionValue="code"
+                                :options="transactionTypeOptions"
+                            />
+                        </div>
+                        <div class="col-span-4">
+                            <label
+                                for="status"
+                                class="mb-2 block font-medium text-gray-700"
+                            >
+                                Date
+                            </label>
+                            <InputField
+                                placeholder="Select Date Range"
+                                v-model="filters.date_range"
+                                :range="true"
+                                variant="date"
+                            />
+                        </div>
+                        <div class="col-span-4">
+                            <Button
+                                v-if="
+                                    filters.date_range.length ||
+                                    filters.transaction_type
+                                "
+                                link
+                                label="Clear Filters"
+                                @click="clearFilters()"
+                            />
+                        </div>
+                    </div>
                 </template>
                 <template #empty> No invoices found. </template>
-                <Column
-                    :sortable="true"
-                    field="invoice_number"
-                    header="Invoice Number"
-                />
 
-                <Column :sortable="true" field="date" header="Transaction Type">
+                <Column
+                    header="Transaction Type"
+                    :sortable="true"
+                    field="payment_status"
+                >
                     <template #body="{ data }">
                         <StatusTag
-                            :status="data.status ? 'paid' : 'inactive'"
+                            :status="
+                                data.payment_status === 'paid'
+                                    ? 'Payment'
+                                    : 'Invoice'
+                            "
                         />
                     </template>
                 </Column>
 
-                <Column :sortable="true" field="date" header="Date">
+                <Column field="invoice_number" header="Invoice Number" />
+
+                <Column field="invoice_date" header="Date">
                     <template #body="{ data }">
-                        {{ formatDate(data.date) }}
+                        {{ formatDate(data.invoice_date) }}
                     </template>
                 </Column>
 
-                <Column
-                    :sortable="true"
-                    field="outstanding_balance"
-                    header="Amount"
-                >
+                <Column field="outstanding_balance" header="Amount">
                     <template #body="{ data }">
                         {{ moneyFormat(data.outstanding_balance) }}
                     </template>
@@ -147,15 +275,10 @@ const getItems = async () => {
                 <Column field="pdf_path" header="View">
                     <template #body="{ data }">
                         <Button
-                            v-if="data.pdf_path"
-                            as="a"
-                            :href="data.pdf_path"
-                            target="_blank"
-                            rounded
+                            @click="openInvoicePreview(data)"
                             variant="outlined"
                             icon="pi pi-eye"
-                            size="small"
-                            class="mx-auto !flex"
+                            label="View"
                         />
                     </template>
                 </Column>

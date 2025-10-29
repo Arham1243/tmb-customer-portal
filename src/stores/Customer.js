@@ -12,7 +12,15 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
+    const exportReport = (resource, payload) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await CustomerService.exportReport(resource, payload);
+            return res.data;
+        });
+    };
+
     return {
-        searchInvoices 
+        searchInvoices,
+        exportReport
     };
 });

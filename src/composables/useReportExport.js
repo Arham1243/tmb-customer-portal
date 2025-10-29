@@ -1,10 +1,10 @@
-import { useReportStore } from '@/modules/reports/stores';
-const reportStore = useReportStore();
+import { useCustomerStore } from '@/stores';
+const customerStore = useCustomerStore();
 
 export const useReportExport = () => {
     const exportReport = async (resource, payload) => {
         try {
-            const res = await reportStore.exportReport(resource, payload);
+            const res = await customerStore.exportReport(resource, payload);
 
             const mimeType =
                 payload.format === 'pdf'
