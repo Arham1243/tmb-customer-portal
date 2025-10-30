@@ -44,6 +44,11 @@ const makeFiltersPayload = () => {
             field: 'payment_status',
             operator: 'in',
             value: ['unpaid', 'partially_paid']
+        },
+        {
+            field: 'status',
+            operator: '=',
+            value: 'approved'
         }
     ];
     return filtersPayload;

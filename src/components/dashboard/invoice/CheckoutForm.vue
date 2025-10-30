@@ -27,8 +27,17 @@ onBeforeMount(() => {
         selectedInvoices.every((i) => i.payment_status === 'paid')
     ) {
         router.replace({ name: 'Dashboard' });
+    } else if (!customerStore.paymentMethods?.length) {
+        toast.add({
+            severity: 'warn',
+            summary: 'No Payment Methods',
+            detail: 'Please add a payment method from your profile before checking out.',
+            life: 5000
+        });
+        router.push({ name: 'Profile' });
+    } else {
+        fetchPaymentMethods();
     }
-    fetchPaymentMethods();
 });
 
 const subtotal = computed(() => {
