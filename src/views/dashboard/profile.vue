@@ -37,6 +37,18 @@ const companyDetails = ref(myCompany);
                                 text
                                 @click="activeTab = 'contacts'"
                             />
+                            <Button
+                                icon="pi pi-credit-card"
+                                class="!justify-start !py-4"
+                                :class="{
+                                    'link-active':
+                                        activeTab === 'payment-methods'
+                                }"
+                                label="Payment Methods"
+                                severity="secondary"
+                                text
+                                @click="activeTab = 'payment-methods'"
+                            />
                         </div>
                     </template>
                 </Card>
@@ -50,6 +62,10 @@ const companyDetails = ref(myCompany);
 
                         <div v-else-if="activeTab === 'contacts'">
                             <ContactsDetails />
+                        </div>
+
+                        <div v-else-if="activeTab === 'payment-methods'">
+                            <PaymentMethods />
                         </div>
                     </template>
                 </Card>

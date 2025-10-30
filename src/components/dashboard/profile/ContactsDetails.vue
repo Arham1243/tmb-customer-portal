@@ -146,73 +146,88 @@ const save = async () => {
 
         <!-- Contact Cards Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 gap-y-5">
-            <div
-                class="col-span-6"
-                v-for="contact in contacts"
-                :key="contact.id"
-            >
-                <Card>
-                    <template #content>
-                        <template v-if="editContactId !== contact.id">
-                            <div class="space-y-2 text-base">
-                                <div class="text-right mb-4">
-                                    <Button
-                                        icon="pi pi-pencil"
-                                        class="!p-2"
-                                        label="Edit"
-                                        text
-                                        severity="secondary"
-                                        @click="startEdit(contact)"
-                                    />
+            <template v-if="contacts.length">
+                <div
+                    class="col-span-6"
+                    v-for="contact in contacts"
+                    :key="contact.id"
+                >
+                    <Card>
+                        <template #content>
+                            <template v-if="editContactId !== contact.id">
+                                <div class="space-y-2 text-base">
+                                    <div class="text-right mb-4">
+                                        <Button
+                                            icon="pi pi-pencil"
+                                            class="!p-2"
+                                            label="Edit"
+                                            text
+                                            severity="secondary"
+                                            @click="startEdit(contact)"
+                                        />
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Name</span>
+                                        <span
+                                            class="font-semibold text-gray-900"
+                                        >
+                                            {{ contact.first_name }}
+                                            {{ contact.last_name }}
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Email</span>
+                                        <span
+                                            class="font-semibold text-gray-900"
+                                            >{{ contact.email }}</span
+                                        >
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Phone</span>
+                                        <span
+                                            class="font-semibold text-gray-900"
+                                            >{{ contact.phone }}</span
+                                        >
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Title</span>
+                                        <span
+                                            class="font-semibold text-gray-900"
+                                            >{{ contact.title }}</span
+                                        >
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600"
+                                            >Contact Type</span
+                                        >
+                                        <span
+                                            class="font-semibold text-gray-900"
+                                        >
+                                            {{ contact.contactType?.name }}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Name</span>
-                                    <span class="font-semibold text-gray-900">
-                                        {{ contact.first_name }}
-                                        {{ contact.last_name }}
-                                    </span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Email</span>
-                                    <span class="font-semibold text-gray-900">{{
-                                        contact.email
-                                    }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Phone</span>
-                                    <span class="font-semibold text-gray-900">{{
-                                        contact.phone
-                                    }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Title</span>
-                                    <span class="font-semibold text-gray-900">{{
-                                        contact.title
-                                    }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600"
-                                        >Contact Type</span
-                                    >
-                                    <span class="font-semibold text-gray-900">
-                                        {{ contact.contactType?.name }}
-                                    </span>
-                                </div>
-                            </div>
-                        </template>
+                            </template>
 
-                        <!-- Edit Form - Inside Card -->
-                        <template v-else>
-                            <ContactForm
-                                :key="editContactId"
-                                v-model:formData="formData"
-                                :busy="busy"
-                                @cancel="cancelEdit"
-                                @save="save"
-                            />
+                            <!-- Edit Form - Inside Card -->
+                            <template v-else>
+                                <ContactForm
+                                    :key="editContactId"
+                                    v-model:formData="formData"
+                                    :busy="busy"
+                                    @cancel="cancelEdit"
+                                    @save="save"
+                                />
+                            </template>
                         </template>
-                    </template>
-                </Card>
+                    </Card>
+                </div>
+            </template>
+            <div
+                v-else-if="contacts.length && !showAddForm"
+                class="col-span-12 text-center py-4 text-gray-500"
+            >
+                No contacts found
             </div>
         </div>
     </template>

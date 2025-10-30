@@ -61,6 +61,43 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
+    const getPaymentMethods = () => {
+        return globalStore.actionWrapper(async () => {
+            const res = await CustomerService.getPaymentMethods();
+            return res.data;
+        });
+    };
+
+    const createSetupIntent = () => {
+        return globalStore.actionWrapper(async () => {
+            const res = await CustomerService.createSetupIntent();
+            return res.data;
+        });
+    };
+
+    const attachPaymentMethod = (paymentMethodId) => {
+        return globalStore.actionWrapper(async () => {
+            const res =
+                await CustomerService.attachPaymentMethod(paymentMethodId);
+            globalStore.showSuccess(
+                'Payment method added',
+                'Payment method added successfully'
+            );
+            return res.data;
+        });
+    };
+
+    const checkout = (payload) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await CustomerService.checkout(payload);
+            globalStore.showSuccess(
+                'Payment successful',
+                'Payment was processed successfully'
+            );
+            return res.data;
+        });
+    };
+
     return {
         selectedInvoices,
         setSelectedInvoices,
@@ -69,6 +106,10 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         listContactTypes,
         searchContacts,
         createContact,
-        updateContact
+        updateContact,
+        getPaymentMethods,
+        createSetupIntent,
+        attachPaymentMethod,
+        checkout
     };
 });
