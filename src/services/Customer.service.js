@@ -31,9 +31,10 @@ export const getPaymentMethods = () => {
     return AxiosService.get(`${BASE_URL}/customer-portal/payment-methods`);
 };
 
-export const createSetupIntent = () => {
+export const createSetupIntent = (payload) => {
     return AxiosService.post(
-        `${BASE_URL}/customer-portal/payment-methods/setup-intent`
+        `${BASE_URL}/customer-portal/payment-methods/setup-intent`,
+        payload
     );
 };
 

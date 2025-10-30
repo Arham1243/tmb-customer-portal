@@ -1,26 +1,32 @@
 <script setup>
 import { ref, onBeforeMount, watch } from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
-import { useCustomerStore } from '@/stores';
+import {} from '@/stores';
+import { useCustomerStore, useSessionStore } from '@/stores';
 import { useToast } from 'primevue/usetoast';
 
 const customerStore = useCustomerStore();
+const sessionStore = useSessionStore();
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_KEY);
 
+const customer = sessionStore.user;
 const paymentMethods = ref([]);
 const showAddForm = ref(false);
 const toast = useToast();
-const selectedType = ref('card');
+const selectedType = ref('');
 const setupClientSecret = ref(null);
 const stripe = ref(null);
 const elements = ref(null);
 const element = ref(null);
 const canSave = ref(false);
-const loadingMethods = ref(false); // fetching payment methods
-const loadingIntent = ref(false); // fetching setup intent
-const busy = ref(false); // saving payment method
+const loadingMethods = ref(false);
+const loadingIntent = ref(false);
+const busy = ref(false);
 
-const paymentTypeOptions = [{ name: 'Credit Card', code: 'card' }];
+const paymentTypeOptions = [
+    { name: 'Credit Card', code: 'card' },
+    { name: 'ACH / Bank Account', code: 'us_bank_account' }
+];
 
 const fetchPaymentMethods = async () => {
     loadingMethods.value = true;
@@ -33,15 +39,32 @@ const fetchPaymentMethods = async () => {
 };
 
 const createSetupIntent = async () => {
+    if (!selectedType.value) return;
     loadingIntent.value = true;
     try {
-        const res = await customerStore.createSetupIntent();
+        const payload = {
+            type: selectedType.value
+        };
+        const res = await customerStore.createSetupIntent(payload);
         setupClientSecret.value = res.client_secret;
         stripe.value = await stripePromise;
+
+        if (element.value) element.value.unmount();
+
         elements.value = stripe.value.elements({
             clientSecret: setupClientSecret.value
         });
-        element.value = elements.value.create('card');
+
+        if (selectedType.value === 'card') {
+            element.value = elements.value.create('card');
+        } else if (selectedType.value === 'ach') {
+            element.value = elements.value.create('usBankAccount', {
+                payment_method_data: {
+                    billing_details: { name: customer?.name }
+                }
+            });
+        }
+
         element.value.mount('#stripe-element');
         element.value.on('change', (event) => {
             canSave.value = event.complete;
@@ -62,33 +85,40 @@ const closeAddForm = () => {
     showAddForm.value = false;
 };
 
-watch(selectedType, async () => {
-    if (showAddForm.value) await createSetupIntent();
-});
-
 const savePaymentMethod = async () => {
     busy.value = true;
     try {
-        const { error, setupIntent } = await stripe.value.confirmCardSetup(
-            setupClientSecret.value, // pass the client secret
-            {
-                payment_method: {
-                    card: element.value
-                }
-            }
-        );
+        let result;
 
-        if (error) {
+        if (selectedType.value === 'card') {
+            result = await stripe.value.confirmCardSetup(
+                setupClientSecret.value,
+                {
+                    payment_method: { card: element.value }
+                }
+            );
+        } else if (selectedType.value === 'ach') {
+            result = await stripe.value.confirmSetup({
+                elements: element.value,
+                confirmParams: {
+                    return_url: window.location.href // required for ACH micro-deposit verification
+                }
+            });
+        }
+
+        if (result.error) {
             toast.add({
                 severity: 'error',
                 summary: 'Oops!',
-                detail: error.message,
+                detail: result.error.message,
                 life: 3000
             });
             return;
         }
 
-        await customerStore.attachPaymentMethod(setupIntent.payment_method);
+        await customerStore.attachPaymentMethod(
+            result.setupIntent.payment_method
+        );
         await fetchPaymentMethods();
         showAddForm.value = false;
     } finally {
@@ -148,16 +178,22 @@ onBeforeMount(() => {
                         optionValue="code"
                         class="w-full"
                         placeholder="Select"
+                        @change="createSetupIntent"
                         :disabled="busy"
                     />
                 </div>
 
-                <div class="col-span-12">
+                <div class="col-span-12" v-if="selectedType">
                     <label class="block mb-3">Payment Details</label>
                     <div
                         id="stripe-element"
                         class="border rounded p-3 min-h-[50px]"
                     ></div>
+                </div>
+                <div class="col-span-12" v-else>
+                    <p class="text-center text-gray-500">
+                        Please select a payment type
+                    </p>
                 </div>
 
                 <div class="col-span-12 flex justify-start">

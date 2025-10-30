@@ -68,9 +68,9 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
-    const createSetupIntent = () => {
+    const createSetupIntent = (payload) => {
         return globalStore.actionWrapper(async () => {
-            const res = await CustomerService.createSetupIntent();
+            const res = await CustomerService.createSetupIntent(payload);
             return res.data;
         });
     };
