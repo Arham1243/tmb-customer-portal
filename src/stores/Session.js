@@ -8,6 +8,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
     const { cookies } = useCookies();
     const user = ref(null);
     const myCompany = ref({});
+    const info = ref({});
     const intendedRoute = ref(sessionStorage.getItem('intendedRoute'));
 
     const startUserSession = (data) => {
@@ -53,6 +54,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
             const res = (await AuthService.me()).data;
             user.value = res.data;
             myCompany.value = res.my_company;
+            info.value = res.info;
             return user.value;
         } catch (error) {
             throw error;
@@ -77,7 +79,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
         me,
         user,
         myCompany,
-
+        info,
         setEmail,
         setCookie,
         getCookie,

@@ -1,7 +1,7 @@
 <script setup>
 import { onBeforeMount, ref, watch } from 'vue';
 import { useCustomerStore, useSessionStore } from '@/stores';
-import { PaginationOptions, SortFilterOptions } from '@/config';
+import { PaginationOptions } from '@/config';
 import { useHelpers } from '@/composables';
 import { useReportExport } from '@/composables/useReportExport';
 
@@ -161,9 +161,7 @@ const openInvoicePreview = (data) => {
     <TitleHeader>
         <template #title>
             <div>
-                <h1 class="text-xl sm:text-2xl font-bold">
-                    Transaction History
-                </h1>
+                <h1 class="text-2xl font-bold">Transaction History</h1>
             </div>
         </template>
         <template #actions>
@@ -267,15 +265,25 @@ const openInvoicePreview = (data) => {
                     </template>
                 </Column>
 
-                <Column field="outstanding_balance" header="Amount">
+                <Column
+                    field="outstanding_balance"
+                    header="Amount"
+                    class="amount-column"
+                >
                     <template #body="{ data }">
                         {{ moneyFormat(data.outstanding_balance) }}
                     </template>
                 </Column>
-                <Column field="pdf_path" header="View">
+                <Column
+                    field="pdf_path"
+                    header="View"
+                    class="text-center flex justify-center"
+                >
                     <template #body="{ data }">
                         <Button
                             @click="openInvoicePreview(data)"
+                            text
+                            class="!p-2"
                             variant="outlined"
                             icon="pi pi-eye"
                             label="View"

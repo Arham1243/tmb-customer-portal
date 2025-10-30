@@ -1,9 +1,9 @@
 <script setup>
-import InvoiceTable from '@/components/dashboard/invoice/InvoiceTable.vue';
+import CheckoutForm from '@/components/dashboard/invoice/CheckoutForm.vue';
 </script>
 
 <template>
     <div class="container mx-auto pt-10 pb-20">
-        <InvoiceTable />
+        <CheckoutForm />
     </div>
 </template>

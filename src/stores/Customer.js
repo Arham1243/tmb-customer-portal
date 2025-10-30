@@ -1,9 +1,15 @@
+import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { useGlobalStore } from '@/stores';
 import { CustomerService } from '@/services';
 
 export const useCustomerStore = defineStore('CustomerStore', () => {
     const globalStore = useGlobalStore();
+    const selectedInvoices = ref([]);
+
+    const setSelectedInvoices = (invoices) => {
+        selectedInvoices.value = invoices;
+    };
 
     const searchInvoices = (payload, params) => {
         return globalStore.actionWrapper(async () => {
@@ -56,6 +62,8 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
     };
 
     return {
+        selectedInvoices,
+        setSelectedInvoices,
         searchInvoices,
         exportReport,
         listContactTypes,

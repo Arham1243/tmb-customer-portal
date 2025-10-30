@@ -12,6 +12,11 @@ export default [
                 component: () => import('@/views/dashboard/index.vue')
             },
             {
+                path: '/checkout',
+                name: 'Checkout',
+                component: () => import('@/views/dashboard/checkout.vue')
+            },
+            {
                 path: 'history',
                 name: 'History',
                 component: () => import('@/views/dashboard/history.vue')
