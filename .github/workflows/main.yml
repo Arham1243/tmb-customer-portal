@@ -21,6 +21,7 @@ jobs:
                   npm run build
               env:
                   VITE_API_BASE_URL: https://demo-agreedsolutions.com/backend
+                  VITE_STRIPE_KEY: pk_test_51PqbKJIb8ACmReIMCmL55N3mm9YwFvtvg1ojzWqzOL7ICALsi0w4oW416y5Z598qrNjPEYSgauXvE1N7vpq9vVi600r3MnYa7g
 
             - name: 📂 Sync frontend build
               uses: SamKirkland/FTP-Deploy-Action@v4.3.5
