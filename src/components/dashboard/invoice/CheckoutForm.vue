@@ -67,23 +67,39 @@ const fetchPaymentMethods = async () => {
     }
 };
 
-// define your fee rates
 function getFeeRate(brand) {
     brand = brand?.toLowerCase();
-    if (brand === 'american express' || brand === 'amex') {
-        return 0.0444; // 4.44%
-    }
-    // visa, mastercard or defaults
-    return 0.0395; // 3.95%
+    const rates = {
+        'american express': 0.0444,
+        amex: 0.0444,
+        visa: 0.0395,
+        mastercard: 0.0395
+    };
+    return rates[brand] || 0.0395;
+}
+
+function getFeeRateLabel(brand) {
+    const rate = getFeeRate(brand);
+    return `${(rate * 100).toFixed(2)}%`;
 }
 
 const serviceFee = computed(() => {
-    if (!selectedPaymentMethod.value) return 0;
-    if (selectedPaymentMethod.value.type !== 'card') {
+    if (
+        !selectedPaymentMethod.value ||
+        selectedPaymentMethod.value.type !== 'card'
+    )
         return 0;
-    }
     const rate = getFeeRate(selectedPaymentMethod.value.brand);
     return subtotal.value * rate;
+});
+
+const serviceFeeLabel = computed(() => {
+    if (
+        !selectedPaymentMethod.value ||
+        selectedPaymentMethod.value.type !== 'card'
+    )
+        return '';
+    return getFeeRateLabel(selectedPaymentMethod.value.brand);
 });
 
 const payInvoices = async () => {
@@ -208,20 +224,25 @@ watch(selectedPaymentMethod, () => {
                     </div>
 
                     <div class="flex flex-col gap-y-3 mt-6 pt-4">
-                        <div class="flex justify-between text-sm">
+                        <div class="flex justify-between">
                             <span class="text-gray-600">Subtotal</span>
                             <span class="text-gray-900 font-medium">{{
                                 moneyFormat(subtotal)
                             }}</span>
                         </div>
                         <div
-                            class="flex justify-between text-sm"
+                            class="flex justify-between"
                             v-if="selectedPaymentMethod?.type === 'card'"
                         >
-                            <span class="text-gray-600">Service Fee</span>
-                            <span class="text-gray-900 font-medium">{{
-                                moneyFormat(serviceFee)
-                            }}</span>
+                            <span class="text-gray-600">
+                                Service Fee
+                                <span class="text-gray-500">
+                                    ({{ serviceFeeLabel }})
+                                </span>
+                            </span>
+                            <span class="text-gray-900 font-medium">
+                                {{ moneyFormat(serviceFee) }}
+                            </span>
                         </div>
                         <div
                             class="flex justify-between border-t pt-5 font-bold mt-3"
