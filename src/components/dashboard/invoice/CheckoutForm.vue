@@ -21,13 +21,21 @@ const pushRoute = (routeName) => {
     router.push({ name: routeName });
 };
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
+    // if no invoices or all invoices are paid
     if (
         !selectedInvoices.length ||
         selectedInvoices.every((i) => i.payment_status === 'paid')
     ) {
         router.replace({ name: 'Dashboard' });
-    } else if (!customerStore.paymentMethods?.length) {
+        return; // stop execution
+    }
+
+    // fetch payment methods first
+    await fetchPaymentMethods();
+
+    // if no payment methods
+    if (!paymentMethods.value?.length) {
         toast.add({
             severity: 'error',
             summary: 'No Payment Methods',
@@ -35,9 +43,10 @@ onBeforeMount(() => {
             life: 5000
         });
         router.push({ name: 'Profile' });
-    } else {
-        fetchPaymentMethods();
+        return;
     }
+
+    // otherwise continue
 });
 
 const subtotal = computed(() => {

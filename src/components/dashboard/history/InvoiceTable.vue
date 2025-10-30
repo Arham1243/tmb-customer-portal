@@ -120,6 +120,11 @@ const makeFiltersPayload = () => {
                 operator: 'in',
                 value: ['unpaid', 'partially_paid']
             });
+            filtersPayload.push({
+                field: 'status',
+                operator: '=',
+                value: 'approved'
+            });
         }
     }
     return filtersPayload;
