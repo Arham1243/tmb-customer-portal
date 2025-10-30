@@ -49,7 +49,7 @@ const companyDetails = ref(myCompany);
                         </div>
 
                         <div v-else-if="activeTab === 'contacts'">
-                            <Contacts />
+                            <ContactsDetails />
                         </div>
                     </template>
                 </Card>

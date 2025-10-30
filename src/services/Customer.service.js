@@ -7,6 +7,25 @@ export const searchInvoices = (payload, params) => {
     });
 };
 
+export const listContactTypes = (payload, params) => {
+    return AxiosService.post(`${BASE_URL}/contact-types/list`, payload, {
+        params
+    });
+};
+
+export const searchContacts = (payload, params) => {
+    return AxiosService.post(`${BASE_URL}/customer-contacts/search`, payload, {
+        params
+    });
+};
+
+export const createContact = (payload) => {
+    return AxiosService.post(`${BASE_URL}/customer-contacts`, payload);
+};
+
+export const updateContact = (id, payload) => {
+    return AxiosService.put(`${BASE_URL}/customer-contacts/${id}`, payload);
+};
 export const exportReport = (resource, payload) => {
     return AxiosService.post(
         `${BASE_URL}/customer-portal/export-report/${resource}`,

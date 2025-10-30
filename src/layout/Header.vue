@@ -34,7 +34,7 @@ const isActive = (name) => route.name === name;
                 <div class="font-bold text-xl text-gray-800">
                     Customer Portal
                 </div>
-                <nav class="hidden md:flex">
+                <nav class="flex gap-3">
                     <Button
                         icon="pi pi-file"
                         label="Invoices"
