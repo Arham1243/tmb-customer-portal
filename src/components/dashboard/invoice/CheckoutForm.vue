@@ -29,7 +29,7 @@ onBeforeMount(() => {
         router.replace({ name: 'Dashboard' });
     } else if (!customerStore.paymentMethods?.length) {
         toast.add({
-            severity: 'warn',
+            severity: 'error',
             summary: 'No Payment Methods',
             detail: 'Please add a payment method from your profile before checking out.',
             life: 5000
