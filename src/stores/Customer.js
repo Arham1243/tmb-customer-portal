@@ -79,10 +79,6 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         return globalStore.actionWrapper(async () => {
             const res =
                 await CustomerService.attachPaymentMethod(paymentMethodId);
-            globalStore.showSuccess(
-                'Payment method added',
-                'Payment method added successfully'
-            );
             return res.data;
         });
     };
