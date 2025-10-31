@@ -1,11 +1,11 @@
 <script setup>
 import { ref } from 'vue';
-import CompanyForm from '@/components/dashboard/profile/CompanyForm.vue';
+import CustomerForm from '@/components/dashboard/profile/CustomerForm.vue';
 import { useSessionStore } from '@/stores';
 const sessionStore = useSessionStore();
-const myCompany = sessionStore.myCompany;
-const activeTab = ref('company');
-const companyDetails = ref(myCompany);
+const customer = sessionStore.user;
+const activeTab = ref('customer');
+const customerDetails = ref(customer);
 </script>
 
 <template>
@@ -17,14 +17,14 @@ const companyDetails = ref(myCompany);
                         <div class="flex flex-col space-y-3">
                             <Button
                                 class="!justify-start !py-4"
-                                icon="pi pi-building"
-                                label="Company Info"
+                                icon="pi pi-user"
+                                label="Customer Info"
                                 :class="{
-                                    'link-active': activeTab === 'company'
+                                    'link-active': activeTab === 'customer'
                                 }"
                                 severity="secondary"
                                 text
-                                @click="activeTab = 'company'"
+                                @click="activeTab = 'customer'"
                             />
                             <Button
                                 icon="pi pi-users"
@@ -56,8 +56,8 @@ const companyDetails = ref(myCompany);
             <div class="col-span-9">
                 <Card class="p-3">
                     <template #content>
-                        <div v-if="activeTab === 'company'">
-                            <CompanyForm :formData="companyDetails" />
+                        <div v-if="activeTab === 'customer'">
+                            <CustomerForm :formData="customerDetails" />
                         </div>
 
                         <div v-else-if="activeTab === 'contacts'">

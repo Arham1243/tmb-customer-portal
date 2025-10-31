@@ -120,7 +120,7 @@ const save = async () => {
         />
     </div>
 
-    <Loader v-if="loading" />
+    <Loader v-if="loading" class="pb-12" />
     <template v-else>
         <!-- Add Form Card - Only show when showAddForm is true -->
         <Card v-if="showAddForm" class="mb-10">

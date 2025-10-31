@@ -33,9 +33,7 @@ const goBack = () => {
 </script>
 <template>
     <div>
-        <h4 class="text-3xl font-bold text-center mb-4">
-            Forgot Password
-        </h4>
+        <h4 class="text-3xl font-bold text-center mb-3">Forgot Password</h4>
 
         <p class="text-center mb-12 text-gray-700">
             Enter your email address and we'll send you a link to reset your

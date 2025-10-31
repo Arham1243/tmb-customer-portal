@@ -36,10 +36,16 @@ const login = async () => {
 
 <template>
     <div>
-        <h4 class="text-3xl font-bold text-center mb-4">
-            Customer Portal
-        </h4>
-        <p class="text-center mb-12 text-gray-700">Sign in to your account</p>
+        <div class="text-center">
+            <img
+                src="https://demo-agreedsolutions.com/backend/public/uploads/companies/logos/90761401-412f-4721-bf50-eaa2706e332f.jpg"
+                alt="Company Logo"
+                class="mx-auto company-logo mb-2"
+            />
+            <h2 class="text-lg !text-gray-600 font-bold mb-2">Company Name</h2>
+            <h4 class="text-3xl font-bold mb-2">Customer Portal</h4>
+            <p class="text-gray-700 mb-12">Sign in to your account</p>
+        </div>
         <form @submit.prevent="login">
             <div class="grid">
                 <div class="mb-6 col-span-12">

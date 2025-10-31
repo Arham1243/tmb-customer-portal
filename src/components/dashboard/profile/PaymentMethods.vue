@@ -28,6 +28,16 @@ const paymentTypeOptions = [
     { name: 'ACH / Bank Account', code: 'us_bank_account' }
 ];
 
+const openAddForm = async () => {
+    showAddForm.value = true;
+    await createSetupIntent();
+};
+
+const closeAddForm = () => {
+    selectedType.value = '';
+    showAddForm.value = false;
+};
+
 const fetchPaymentMethods = async () => {
     loadingMethods.value = true;
     try {
@@ -42,29 +52,50 @@ const createSetupIntent = async () => {
     if (!selectedType.value) return;
     loadingIntent.value = true;
     try {
-        const payload = {
-            type: selectedType.value
-        };
-        const res = await customerStore.createSetupIntent(payload);
+        const payloadType =
+            selectedType.value === 'ach'
+                ? 'us_bank_account'
+                : selectedType.value;
+        const res = await customerStore.createSetupIntent({
+            type: payloadType
+        });
         setupClientSecret.value = res.client_secret;
+
         stripe.value = await stripePromise;
-
-        if (element.value) element.value.unmount();
-
         elements.value = stripe.value.elements({
             clientSecret: setupClientSecret.value
         });
 
-        if (selectedType.value === 'card') {
-            element.value = elements.value.create('card');
-        } else if (selectedType.value === 'ach') {
-            element.value = elements.value.create('usBankAccount', {
-                payment_method_data: {
-                    billing_details: { name: customer?.name }
-                }
+        if (!elements.value) {
+            toast.add({
+                severity: 'error',
+                summary: 'Oops!',
+                detail: 'Stripe Elements failed to initialize',
+                life: 3000
             });
+            return;
         }
 
+        if (selectedType.value === 'card') {
+            element.value = elements.value.create('card', {
+                style: {
+                    base: {
+                        color: '#111827',
+                        fontFamily: 'Inter, system-ui, sans-serif',
+                        fontSize: '16px',
+                        '::placeholder': { color: '#9ca3af' },
+                        backgroundColor: '#fff',
+                        padding: '12px 16px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '10px'
+                    },
+                    invalid: {
+                        color: '#dc2626'
+                    }
+                }
+            });
+        } else if (selectedType.value === 'ach') {
+        }
         element.value.mount('#stripe-element');
         element.value.on('change', (event) => {
             canSave.value = event.complete;
@@ -74,15 +105,6 @@ const createSetupIntent = async () => {
     } finally {
         loadingIntent.value = false;
     }
-};
-
-const openAddForm = async () => {
-    showAddForm.value = true;
-    await createSetupIntent();
-};
-
-const closeAddForm = () => {
-    showAddForm.value = false;
 };
 
 const savePaymentMethod = async () => {
@@ -98,14 +120,23 @@ const savePaymentMethod = async () => {
                 }
             );
         } else if (selectedType.value === 'ach') {
-            result = await stripe.value.confirmSetup({
-                elements: element.value,
-                confirmParams: {
-                    return_url: window.location.href // required for ACH micro-deposit verification
+            result = await stripe.value.confirmUsBankAccountPayment(
+                setupClientSecret.value,
+                {
+                    payment_method: {
+                        us_bank_account: {
+                            routing_number: '110000000',
+                            account_number: '000123456789',
+                            account_holder_type: 'individual'
+                        },
+                        billing_details: {
+                            name: 'Jenny Rosen',
+                            email: 'jenny@example.com'
+                        }
+                    }
                 }
-            });
+            );
         }
-
         if (result.error) {
             toast.add({
                 severity: 'error',
@@ -115,7 +146,6 @@ const savePaymentMethod = async () => {
             });
             return;
         }
-
         await customerStore.attachPaymentMethod(
             result.setupIntent.payment_method
         );
@@ -139,7 +169,9 @@ onBeforeMount(() => {
                 icon="pi pi-plus"
                 label="Add Payment Method"
                 @click="openAddForm"
-                :disabled="loadingIntent || busy || loadingMethods"
+                :disabled="
+                    loadingIntent || busy || loadingMethods || showAddForm
+                "
             />
         </div>
 
@@ -184,16 +216,10 @@ onBeforeMount(() => {
                 </div>
 
                 <div class="col-span-12" v-if="selectedType">
-                    <label class="block mb-3">Payment Details</label>
                     <div
                         id="stripe-element"
-                        class="border rounded p-3 min-h-[50px]"
+                        class="rounded-xl border border-gray-300 p-4 bg-white shadow-sm"
                     ></div>
-                </div>
-                <div class="col-span-12" v-else>
-                    <p class="text-center text-gray-500">
-                        Please select a payment type
-                    </p>
                 </div>
 
                 <div class="col-span-12 flex justify-start">
@@ -208,7 +234,7 @@ onBeforeMount(() => {
             </div>
         </div>
 
-        <div v-if="loadingMethods" class="text-center py-4">
+        <div v-if="loadingMethods" class="text-center pb-10">
             <Loader />
         </div>
 
@@ -219,7 +245,7 @@ onBeforeMount(() => {
                 class="flex items-center gap-4 border py-5 px-4 rounded-lg shadow-sm bg-white"
             >
                 <template v-if="pm.type === 'card'">
-                    <i class="pi pi-credit-card text-gray-500 !text-3xl"></i>
+                    <i class="pi pi-credit-card text-gray-400 !text-3xl"></i>
                     <div>
                         <div class="font-semibold text-[1.1rem]">
                             Credit Card - {{ pm.brand.toUpperCase() }}

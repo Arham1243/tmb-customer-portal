@@ -1,10 +1,16 @@
 <script setup>
+import { ref } from 'vue';
 import { defineProps } from 'vue';
 const props = defineProps({
     formData: {
         type: Object,
         required: true
     }
+});
+const formData = ref({
+    ...props.formData,
+    parent: props.formData.parent?.name,
+    paymentTerm: props.formData.paymentTerm?.name
 });
 </script>
 
@@ -35,7 +41,7 @@ const props = defineProps({
             <label class="block mb-3">Payment Terms</label>
             <InputField
                 id="payment_terms"
-                v-model="formData.default_payment_term"
+                v-model="formData.paymentTerm"
                 variant="text"
                 class="w-full"
                 :disabled="true"
@@ -45,7 +51,7 @@ const props = defineProps({
             <label class="block mb-3">Parent Customer</label>
             <InputField
                 id="parent_customer"
-                v-model="formData.parent_customer"
+                v-model="formData.parent"
                 variant="text"
                 class="w-full"
                 :disabled="true"
