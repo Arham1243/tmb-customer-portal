@@ -136,14 +136,6 @@ const payInvoices = async () => {
         pushRoute('Dashboard');
     } catch (err) {
         console.error(err);
-        toast.add({
-            severity: 'error',
-            summary: 'Oops!',
-            detail:
-                err.response?.data?.message ||
-                'Payment failed, please try again.',
-            life: 3000
-        });
     } finally {
         processing.value = false;
     }
