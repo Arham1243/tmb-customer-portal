@@ -25,7 +25,7 @@ const busy = ref(false);
 
 const paymentTypeOptions = [
     { name: 'Credit Card', code: 'card' },
-    { name: 'ACH / Bank Account', code: 'us_bank_account' }
+    { name: 'ACH', code: 'us_bank_account' }
 ];
 
 const openAddForm = async () => {
@@ -35,6 +35,10 @@ const openAddForm = async () => {
 
 const closeAddForm = () => {
     selectedType.value = '';
+    if (element.value) {
+        element.value.unmount();
+        element.value = null;
+    }
     showAddForm.value = false;
 };
 
@@ -52,12 +56,14 @@ const createSetupIntent = async () => {
     if (!selectedType.value) return;
     loadingIntent.value = true;
     try {
-        const payloadType =
-            selectedType.value === 'ach'
-                ? 'us_bank_account'
-                : selectedType.value;
+        // Unmount previous element if it exists
+        if (element.value) {
+            element.value.unmount();
+            element.value = null;
+        }
+
         const res = await customerStore.createSetupIntent({
-            type: payloadType
+            type: selectedType.value
         });
         setupClientSecret.value = res.client_secret;
 
@@ -83,25 +89,57 @@ const createSetupIntent = async () => {
                         color: '#111827',
                         fontFamily: 'Inter, system-ui, sans-serif',
                         fontSize: '16px',
-                        '::placeholder': { color: '#9ca3af' },
-                        backgroundColor: '#fff',
-                        padding: '12px 16px',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '10px'
+                        '::placeholder': { color: '#9ca3af' }
                     },
                     invalid: {
                         color: '#dc2626'
                     }
                 }
             });
-        } else if (selectedType.value === 'ach') {
+
+            element.value.mount('#stripe-element');
+            element.value.on('change', (event) => {
+                canSave.value = event.complete;
+            });
+        } else if (selectedType.value === 'us_bank_account') {
+            // For ACH, use the Payment Element which handles US Bank Account
+            element.value = elements.value.create('payment', {
+                layout: {
+                    type: 'accordion',
+                    defaultCollapsed: false,
+                    radios: false,
+                    spacedAccordionItems: true
+                }
+            });
+
+            if (!element.value) {
+                toast.add({
+                    severity: 'error',
+                    summary: 'Oops!',
+                    detail: 'Failed to create payment element',
+                    life: 3000
+                });
+                return;
+            }
+
+            element.value.mount('#stripe-element');
+
+            element.value.on('ready', () => {
+                console.log('Payment element ready');
+            });
+
+            element.value.on('change', (event) => {
+                canSave.value = event.complete;
+            });
         }
-        element.value.mount('#stripe-element');
-        element.value.on('change', (event) => {
-            canSave.value = event.complete;
-        });
     } catch (err) {
-        console.error(err);
+        console.error('Error creating setup intent:', err);
+        toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: err.message || 'Failed to initialize payment form',
+            life: 3000
+        });
     } finally {
         loadingIntent.value = false;
     }
@@ -119,24 +157,17 @@ const savePaymentMethod = async () => {
                     payment_method: { card: element.value }
                 }
             );
-        } else if (selectedType.value === 'ach') {
-            result = await stripe.value.confirmUsBankAccountPayment(
-                setupClientSecret.value,
-                {
-                    payment_method: {
-                        us_bank_account: {
-                            routing_number: '110000000',
-                            account_number: '000123456789',
-                            account_holder_type: 'individual'
-                        },
-                        billing_details: {
-                            name: 'Jenny Rosen',
-                            email: 'jenny@example.com'
-                        }
-                    }
-                }
-            );
+        } else if (selectedType.value === 'us_bank_account') {
+            // For ACH/Bank Account, use confirmSetup with elements
+            result = await stripe.value.confirmSetup({
+                elements: elements.value,
+                confirmParams: {
+                    return_url: window.location.href
+                },
+                redirect: 'if_required'
+            });
         }
+
         if (result.error) {
             toast.add({
                 severity: 'error',
@@ -146,11 +177,42 @@ const savePaymentMethod = async () => {
             });
             return;
         }
+
+        // Check if setup requires action (for ACH micro-deposits)
+        if (
+            result.setupIntent.status === 'requires_action' ||
+            result.setupIntent.status === 'requires_confirmation'
+        ) {
+            toast.add({
+                severity: 'info',
+                summary: 'Verification Required',
+                detail: 'Please verify your bank account to complete setup.',
+                life: 5000
+            });
+            return;
+        }
+
         await customerStore.attachPaymentMethod(
             result.setupIntent.payment_method
         );
+
+        toast.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Payment method added successfully',
+            life: 3000
+        });
+
         await fetchPaymentMethods();
-        showAddForm.value = false;
+        closeAddForm();
+    } catch (err) {
+        console.error('Error saving payment method:', err);
+        toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: err.message || 'Failed to save payment method',
+            life: 3000
+        });
     } finally {
         busy.value = false;
     }
@@ -181,7 +243,7 @@ onBeforeMount(() => {
         >
             <div
                 v-if="loadingIntent"
-                class="absolute inset-0 bg-white/70 flex items-center justify-center z-10"
+                class="absolute inset-0 bg-white/70 flex items-center justify-center z-10 rounded-lg"
             >
                 <Loader />
             </div>
@@ -200,7 +262,7 @@ onBeforeMount(() => {
 
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
                 <div class="mb-3 col-span-12">
-                    <label class="block mb-3">Payment Type</label>
+                    <label class="block mb-3 font-medium">Payment Type</label>
                     <InputField
                         id="payment_type"
                         variant="dropdown"
@@ -211,14 +273,18 @@ onBeforeMount(() => {
                         class="w-full"
                         placeholder="Select"
                         @change="createSetupIntent"
-                        :disabled="busy"
+                        :disabled="busy || loadingIntent"
                     />
                 </div>
 
                 <div class="col-span-12" v-if="selectedType">
                     <div
                         id="stripe-element"
-                        class="rounded-xl border border-gray-300 p-4 bg-white shadow-sm"
+                        :class="
+                            selectedType === 'card'
+                                ? 'rounded-xl border border-gray-300 p-4 bg-white shadow-sm min-h-[100px]'
+                                : ''
+                        "
                     ></div>
                 </div>
 
@@ -226,7 +292,7 @@ onBeforeMount(() => {
                     <Button
                         label="Save Payment Method"
                         class="mt-4"
-                        :disabled="busy || !canSave"
+                        :disabled="busy || !canSave || loadingIntent"
                         :loading="busy"
                         @click="savePaymentMethod"
                     />
@@ -255,8 +321,16 @@ onBeforeMount(() => {
                         </div>
                     </div>
                 </template>
-                <template v-else>
-                    <div class="font-semibold">ACH</div>
+                <template v-else-if="pm.type === 'us_bank_account'">
+                    <i class="pi pi-building text-gray-400 !text-3xl"></i>
+                    <div>
+                        <div class="font-semibold text-[1.1rem]">
+                            Bank Account - {{ pm.bank_name || 'ACH' }}
+                        </div>
+                        <div class="text-sm text-gray-500">
+                            ending in ••••{{ pm.last4 }}
+                        </div>
+                    </div>
                 </template>
             </div>
         </div>

@@ -90,10 +90,6 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
     const checkout = (payload) => {
         return globalStore.actionWrapper(async () => {
             const res = await CustomerService.checkout(payload);
-            globalStore.showSuccess(
-                'Payment successful',
-                'Payment was processed successfully'
-            );
             return res.data;
         });
     };

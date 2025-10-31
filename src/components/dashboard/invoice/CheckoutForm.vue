@@ -70,17 +70,14 @@ const fetchPaymentMethods = async () => {
 function getFeeRate(brand) {
     brand = brand?.toLowerCase();
     const rates = {
-        'american express': 0.0444,
-        amex: 0.0444,
-        visa: 0.0395,
-        mastercard: 0.0395
+        amex: 0.0444 // 4.44% for Amex
     };
-    return rates[brand] || 0.0395;
+    return rates[brand] || 0.0395; // 3.95% for all other cards
 }
 
 function getFeeRateLabel(brand) {
     const rate = getFeeRate(brand);
-    return `${(rate * 100).toFixed(2)}%`;
+    return `${(rate * 100).toFixed(2)}%`; // Shows "3.95%" or "4.44%"
 }
 
 const serviceFee = computed(() => {
@@ -90,7 +87,7 @@ const serviceFee = computed(() => {
     )
         return 0;
     const rate = getFeeRate(selectedPaymentMethod.value.brand);
-    return subtotal.value * rate;
+    return subtotal.value * rate; // Calculates actual fee
 });
 
 const serviceFeeLabel = computed(() => {
@@ -114,14 +111,37 @@ const payInvoices = async () => {
             service_fee: serviceFee.value
         };
 
-        await customerStore.checkout(payload);
+        const result = await customerStore.checkout(payload);
+
+        // Handle ACH processing status
+        if (
+            result?.requires_webhook ||
+            selectedPaymentMethod.value.type === 'us_bank_account'
+        ) {
+            toast.add({
+                severity: 'info',
+                summary: 'Payment Processing',
+                detail: 'Your ACH payment is being processed. This may take 3-5 business days to complete.',
+                life: 8000
+            });
+        } else {
+            toast.add({
+                severity: 'success',
+                summary: 'Payment Successful',
+                detail: 'Your payment has been processed successfully.',
+                life: 3000
+            });
+        }
+
         pushRoute('Dashboard');
     } catch (err) {
         console.error(err);
         toast.add({
             severity: 'error',
             summary: 'Oops!',
-            detail: 'Payment failed, please try again.',
+            detail:
+                err.response?.data?.message ||
+                'Payment failed, please try again.',
             life: 3000
         });
     } finally {
@@ -136,6 +156,28 @@ const total = computed(() => {
 watch(selectedPaymentMethod, () => {
     acceptFee.value = false;
 });
+
+// Helper to get payment method display info
+const getPaymentMethodDisplay = (pm) => {
+    if (pm.type === 'card') {
+        return {
+            icon: 'pi-credit-card',
+            title: `Credit Card - ${pm.brand.toUpperCase()}`,
+            subtitle: `ending in ••••${pm.last4}`
+        };
+    } else if (pm.type === 'us_bank_account') {
+        return {
+            icon: 'pi-building',
+            title: pm.bank_name ? `${pm.bank_name}` : 'Bank Account',
+            subtitle: `ending in ••••${pm.last4}`
+        };
+    }
+    return {
+        icon: 'pi-wallet',
+        title: 'Payment Method',
+        subtitle: ''
+    };
+};
 </script>
 
 <template>
@@ -187,10 +229,10 @@ watch(selectedPaymentMethod, () => {
                             <div
                                 v-for="pm in paymentMethods"
                                 :key="pm.id"
-                                class="flex items-center gap-4 border py-5 px-4 rounded-lg shadow-sm bg-white cursor-pointer"
+                                class="flex items-center gap-4 border py-5 px-4 rounded-lg shadow-sm bg-white cursor-pointer transition-all"
                                 @click="selectedPaymentMethod = pm"
                                 :class="{
-                                    'border-primary-500 ring-1 ring-blue-400':
+                                    'border-primary-500 ring-2 ring-primary-400':
                                         selectedPaymentMethod?.id === pm.id
                                 }"
                             >
@@ -198,27 +240,45 @@ watch(selectedPaymentMethod, () => {
                                     v-model="selectedPaymentMethod"
                                     :value="pm"
                                     class="mr-3"
-                                    :input-id="'pm-' + pm.id"
+                                    :inputId="'pm-' + pm.id"
                                 />
-                                <template v-if="pm.type === 'card'">
-                                    <i
-                                        class="pi pi-credit-card text-gray-500 !text-3xl"
-                                    ></i>
-                                    <div>
-                                        <div
-                                            class="font-semibold text-[1.1rem]"
-                                        >
-                                            Credit Card -
-                                            {{ pm.brand.toUpperCase() }}
-                                        </div>
-                                        <div class="text-sm text-gray-500">
-                                            ending in ••••{{ pm.last4 }}
-                                        </div>
+                                <i
+                                    :class="getPaymentMethodDisplay(pm).icon"
+                                    class="pi text-gray-500 !text-3xl"
+                                ></i>
+                                <div class="flex-1">
+                                    <div class="font-semibold text-[1.1rem]">
+                                        {{ getPaymentMethodDisplay(pm).title }}
                                     </div>
-                                </template>
-                                <template v-else>
-                                    <div class="font-semibold">ACH</div>
-                                </template>
+                                    <div class="text-sm text-gray-500">
+                                        {{
+                                            getPaymentMethodDisplay(pm).subtitle
+                                        }}
+                                    </div>
+
+                                    <Tag
+                                        v-if="pm.type === 'us_bank_account'"
+                                        severity="success"
+                                        value="No service fee"
+                                        class="mt-2"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        v-if="selectedPaymentMethod?.type === 'us_bank_account'"
+                        class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6"
+                    >
+                        <div class="flex gap-3">
+                            <i
+                                class="pi pi-info-circle text-blue-600 mt-0.5"
+                            ></i>
+                            <div class="text-sm text-blue-800">
+                                <strong>ACH Payment Processing:</strong> Your
+                                payment will be processed directly from your
+                                bank account. This typically takes 3-5 business
+                                days to complete.
                             </div>
                         </div>
                     </div>
