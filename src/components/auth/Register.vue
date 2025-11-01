@@ -13,7 +13,7 @@ const globalStore = useGlobalStore();
 
 const loading = ref(false);
 const credentials = ref({
-    email: '',
+    email: route.query?.email || '',
     password: '',
     customer_id: currentCustomerUuid
 });
