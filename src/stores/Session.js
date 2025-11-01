@@ -62,9 +62,9 @@ export const useSessionStore = defineStore('SessionStore', () => {
         }
     };
 
-    const meCustomer = async (customerUuid) => {
+    const meCustomer = async () => {
         try {
-            const res = await AuthService.meCustomer(customerUuid);
+            const res = await AuthService.meCustomer();
             customerCompany.value = res?.data?.my_company;
             return customerCompany.value;
         } catch (error) {

@@ -7,9 +7,8 @@ const sessionStore = useSessionStore();
 const router = useRouter();
 const route = useRoute();
 
-const currentCustomerUuid = sessionStore.customer?.uuid;
 const currentUser = sessionStore.user;
-const myCompany = sessionStore.myCompany;
+const customer = sessionStore.customer;
 const busy = ref(false);
 
 const logout = async () => {
@@ -18,7 +17,7 @@ const logout = async () => {
         await authStore.logout();
     } finally {
         sessionStore.clearSessionState();
-        pushRoute('Login', { customer_id: currentCustomerUuid });
+        pushRoute('Login');
         busy.value = false;
     }
 };
@@ -100,6 +99,6 @@ const isActive = (name) => route.name === name;
         </div>
     </div>
     <div class="text-center mt-10 font-bold text-2xl">
-        {{ myCompany.name }}
+        {{ customer?.name }}
     </div>
 </template>

@@ -5,13 +5,11 @@ import { useAuthStore } from '@/stores';
 
 const router = useRouter();
 const route = useRoute();
-const currentCustomerUuid = route.params?.customer_id;
 const authStore = useAuthStore();
 const loading = ref(false);
 const formData = ref({
     password: '',
-    password_confirmation: '',
-    customer_id: currentCustomerUuid
+    password_confirmation: ''
 });
 
 const rules = ref({
@@ -25,8 +23,7 @@ const rules = ref({
 onBeforeMount(() => {
     if (!route.query.token) {
         router.replace({
-            name: 'Login',
-            params: { customer_id: currentCustomerUuid }
+            name: 'Login'
         });
     }
 });

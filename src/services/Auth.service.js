@@ -25,8 +25,6 @@ export const me = () => {
     return AxiosService.get(`${BASE_URL}/me`);
 };
 
-export const meCustomer = (customerUuid) => {
-    return AxiosService.post(`${BASE_URL}/customers`, {
-        id: customerUuid
-    });
+export const meCustomer = () => {
+    return AxiosService.get(`${BASE_URL}/my-company`);
 };

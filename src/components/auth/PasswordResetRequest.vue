@@ -1,9 +1,8 @@
 <script setup>
 import { onBeforeMount, ref } from 'vue';
 import { useAuthStore, useGlobalStore, useSessionStore } from '@/stores';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 
-const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const sessionStore = useSessionStore();
@@ -11,7 +10,6 @@ const globalStore = useGlobalStore();
 const company = sessionStore.customerCompany;
 const loading = ref(false);
 const email = ref(null);
-const currentCustomerUuid = route.params?.customer_id;
 
 onBeforeMount(() => {
     globalStore.clearErrors();
@@ -21,8 +19,7 @@ const handleSubmit = async () => {
     try {
         loading.value = true;
         const res = await authStore.forgotPassword({
-            email: email.value,
-            customer_id: currentCustomerUuid
+            email: email.value
         });
         if (res?.status === true) {
             email.value = '';

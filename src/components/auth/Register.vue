@@ -8,14 +8,12 @@ const route = useRoute();
 const authStore = useAuthStore();
 const sessionStore = useSessionStore();
 const company = sessionStore.customerCompany;
-const currentCustomerUuid = route.params?.customer_id;
 const globalStore = useGlobalStore();
 
 const loading = ref(false);
 const credentials = ref({
     email: route.query?.email || '',
-    password: '',
-    customer_id: currentCustomerUuid
+    password: ''
 });
 
 onBeforeMount(() => {
@@ -87,8 +85,7 @@ const register = async () => {
             <router-link
                 class="primary-text flex justify-center mt-6"
                 :to="{
-                    name: 'Login',
-                    params: { customer_id: currentCustomerUuid }
+                    name: 'Login'
                 }"
             >
                 Already have an account? Sign in

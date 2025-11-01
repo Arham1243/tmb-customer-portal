@@ -33,22 +33,22 @@ export default [
         component: AuthLayout,
         children: [
             {
-                path: 'login/:customer_id',
+                path: 'login',
                 name: 'Login',
                 component: () => import('@/views/auth/Login.vue')
             },
             {
-                path: 'register/:customer_id',
+                path: 'register',
                 name: 'Register',
                 component: () => import('@/views/auth/Register.vue')
             },
             {
-                path: 'password/forget/:customer_id',
+                path: 'password/forget',
                 name: 'Password Reset Request',
                 component: () => import('@/views/auth/PasswordResetRequest.vue')
             },
             {
-                path: 'password/reset/:customer_id',
+                path: 'password/reset',
                 name: 'New Password Setup',
                 component: () => import('@/views/auth/PasswordResetForm.vue')
             }

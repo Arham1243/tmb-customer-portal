@@ -1,20 +1,16 @@
 <script setup>
 import { ref, onBeforeMount } from 'vue';
-import { useRoute } from 'vue-router';
 import NotFound from '@/views/errors/NotFound.vue';
 import { useSessionStore } from '@/stores';
 
-const route = useRoute();
-const customerUuid = route.params?.customer_id;
 const loading = ref(true);
 const notFound = ref(false);
 const sessionStore = useSessionStore();
 
 onBeforeMount(async () => {
-    if (!sessionStore.customer) {
+    if (!sessionStore.customerCompany) {
         try {
-            const res = await sessionStore.meCustomer(customerUuid);
-            console.log(res);
+            await sessionStore.meCustomer();
         } catch (e) {
             notFound.value = e.status === 404;
         }

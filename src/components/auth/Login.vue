@@ -8,14 +8,12 @@ const route = useRoute();
 const authStore = useAuthStore();
 const sessionStore = useSessionStore();
 const company = sessionStore.customerCompany;
-const currentCustomerUuid = route.params?.customer_id;
 const globalStore = useGlobalStore();
 
 const loading = ref(false);
 const credentials = ref({
-    email: '',
+    email: route.query?.email || '',
     password: '',
-    customer_id: currentCustomerUuid,
     remember_me: false
 });
 
@@ -93,8 +91,7 @@ const login = async () => {
                 <router-link
                     class="primary-text"
                     :to="{
-                        name: 'Password Reset Request',
-                        params: { customer_id: currentCustomerUuid }
+                        name: 'Password Reset Request'
                     }"
                 >
                     Forgot Password
@@ -111,8 +108,7 @@ const login = async () => {
             <router-link
                 class="primary-text flex justify-center mt-6"
                 :to="{
-                    name: 'Register',
-                    params: { customer_id: currentCustomerUuid }
+                    name: 'Register'
                 }"
             >
                 Don't have an account? Sign up
