@@ -1,13 +1,15 @@
 <script setup>
 import { ref } from 'vue';
-import { useSessionStore } from '@/stores';
+import { useSessionStore, useAuthStore } from '@/stores';
 import { useRoute, useRouter } from 'vue-router';
+const authStore = useAuthStore();
 const sessionStore = useSessionStore();
-const currentUser = sessionStore.user;
-const myCompany = sessionStore.myCompany;
-
 const router = useRouter();
 const route = useRoute();
+
+const currentCustomerUuid = sessionStore.customer?.uuid;
+const currentUser = sessionStore.user;
+const myCompany = sessionStore.myCompany;
 const busy = ref(false);
 
 const logout = async () => {
@@ -16,13 +18,13 @@ const logout = async () => {
         await authStore.logout();
     } finally {
         sessionStore.clearSessionState();
-        pushRoute('Login');
+        pushRoute('Login', { customer_id: currentCustomerUuid });
         busy.value = false;
     }
 };
 
-const pushRoute = (name) => {
-    router.push({ name });
+const pushRoute = (name, params = {}) => {
+    router.push({ name, params });
 };
 const isActive = (name) => route.name === name;
 </script>

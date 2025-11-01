@@ -1,15 +1,17 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, onBeforeMount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores';
 
-const route = useRoute();
 const router = useRouter();
+const route = useRoute();
+const currentCustomerUuid = route.params?.customer_id;
 const authStore = useAuthStore();
 const loading = ref(false);
 const formData = ref({
     password: '',
-    password_confirmation: ''
+    password_confirmation: '',
+    customer_id: currentCustomerUuid
 });
 
 const rules = ref({
@@ -18,6 +20,15 @@ const rules = ref({
     lowercase: false,
     number: false,
     symbol: false
+});
+
+onBeforeMount(() => {
+    if (!route.query.token) {
+        router.replace({
+            name: 'Login',
+            params: { customer_id: currentCustomerUuid }
+        });
+    }
 });
 
 const validatePassword = () => {
@@ -61,9 +72,7 @@ const pushRoute = (name) => {
 </script>
 <template>
     <div>
-        <h4 class="text-3xl font-bold text-center mb-12">
-            Reset Password
-        </h4>
+        <h4 class="text-3xl font-bold text-center mb-12">Reset Password</h4>
 
         <form @submit.prevent="handleSubmit">
             <div class="grid">

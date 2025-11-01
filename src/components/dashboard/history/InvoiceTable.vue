@@ -17,7 +17,7 @@ const loading = ref(false);
 const items = ref([]);
 const totalRecords = ref();
 const exportMenu = ref(null);
-const currentUser = sessionStore.user;
+const currentUser = sessionStore.customer;
 const filters = ref({
     date_range: [],
     transaction_type: null
@@ -105,6 +105,11 @@ const makeFiltersPayload = () => {
             field: 'customer_id',
             operator: '=',
             value: currentUser?.id
+        },
+        {
+            field: 'status',
+            operator: '=',
+            value: 'approved'
         }
     ];
     if (filters.value.transaction_type) {
@@ -119,11 +124,6 @@ const makeFiltersPayload = () => {
                 field: 'payment_status',
                 operator: 'in',
                 value: ['unpaid', 'partially_paid']
-            });
-            filtersPayload.push({
-                field: 'status',
-                operator: '=',
-                value: 'approved'
             });
         }
     }

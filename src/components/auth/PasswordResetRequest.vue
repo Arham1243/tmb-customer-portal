@@ -1,13 +1,17 @@
 <script setup>
 import { onBeforeMount, ref } from 'vue';
-import { useAuthStore, useGlobalStore } from '@/stores';
-import { useRouter } from 'vue-router';
+import { useAuthStore, useGlobalStore, useSessionStore } from '@/stores';
+import { useRouter, useRoute } from 'vue-router';
 
+const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const sessionStore = useSessionStore();
 const globalStore = useGlobalStore();
+const company = sessionStore.customerCompany;
 const loading = ref(false);
 const email = ref(null);
+const currentCustomerUuid = route.params?.customer_id;
 
 onBeforeMount(() => {
     globalStore.clearErrors();
@@ -16,7 +20,10 @@ onBeforeMount(() => {
 const handleSubmit = async () => {
     try {
         loading.value = true;
-        const res = await authStore.forgotPassword({ email: email.value });
+        const res = await authStore.forgotPassword({
+            email: email.value,
+            customer_id: currentCustomerUuid
+        });
         if (res?.status === true) {
             email.value = '';
             globalStore.clearErrors();
@@ -33,13 +40,21 @@ const goBack = () => {
 </script>
 <template>
     <div>
-        <h4 class="text-3xl font-bold text-center mb-3">Forgot Password</h4>
-
-        <p class="text-center mb-12 text-gray-700">
-            Enter your email address and we'll send you a link to reset your
-            password.
-        </p>
-
+        <div class="text-center">
+            <img
+                :src="company?.logo_url"
+                :alt="company?.name"
+                class="mx-auto company-logo mb-2"
+            />
+            <h2 class="text-lg !text-gray-600 font-bold mb-2">
+                {{ company?.name }}
+            </h2>
+            <h4 class="text-3xl font-bold mb-2">Forgot Password</h4>
+            <p class="text-gray-700 mb-12">
+                Enter your email address and we'll send you a link to reset your
+                password.
+            </p>
+        </div>
         <form @submit.prevent="handleSubmit">
             <div class="grid mb-3">
                 <div class="mb-6 col-span-12">

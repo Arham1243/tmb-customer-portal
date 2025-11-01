@@ -106,5 +106,3 @@ const errors = computed(() => {
         {{ error }}
     </small>
 </template>
-
-<style lang="scss" scoped></style>

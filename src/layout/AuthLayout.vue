@@ -1,14 +1,43 @@
 <script setup>
-import Logo from '@/assets/images/logo.png';
+import { ref, onBeforeMount } from 'vue';
+import { useRoute } from 'vue-router';
+import NotFound from '@/views/errors/NotFound.vue';
+import { useSessionStore } from '@/stores';
+
+const route = useRoute();
+const customerUuid = route.params?.customer_id;
+const loading = ref(true);
+const notFound = ref(false);
+const sessionStore = useSessionStore();
+
+onBeforeMount(async () => {
+    if (!sessionStore.customer) {
+        try {
+            const res = await sessionStore.meCustomer(customerUuid);
+            console.log(res);
+        } catch (e) {
+            notFound.value = e.status === 404;
+        }
+    }
+    loading.value = false;
+});
 </script>
 
 <template>
     <div
+        class="w-screen h-screen flex justify-center items-center"
+        v-if="loading"
+    >
+        <Loader />
+    </div>
+    <NotFound v-else-if="notFound" />
+    <div
+        v-else
         class="w-screen h-screen flex items-center justify-center bg-[#F6F9FB] overflow-x-hidden pb-4"
     >
         <div class="w-full max-w-[470px]">
             <div
-                class="bg-white custom-shadow rounded-lg text-gray-800 px-[2.25rem] sm:px-[3.25rem] py-[3.5rem]"
+                class="bg-white custom-shadow rounded-lg text-gray-800 px-[2.25rem] sm:px-[3.25rem] py-[2.57rem]"
             >
                 <router-view />
             </div>

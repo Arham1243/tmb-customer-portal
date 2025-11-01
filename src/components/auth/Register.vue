@@ -15,18 +15,17 @@ const loading = ref(false);
 const credentials = ref({
     email: '',
     password: '',
-    customer_id: currentCustomerUuid,
-    remember_me: false
+    customer_id: currentCustomerUuid
 });
 
 onBeforeMount(() => {
     globalStore.clearErrors();
 });
 
-const login = async () => {
+const register = async () => {
     try {
         loading.value = true;
-        await authStore.login(credentials.value);
+        await authStore.register(credentials.value);
 
         const url = 'Dashboard';
         router.push(url);
@@ -50,9 +49,9 @@ const login = async () => {
                 {{ company?.name }}
             </h2>
             <h4 class="text-3xl font-bold mb-2">Customer Portal</h4>
-            <p class="text-gray-700 mb-12">Sign in to your account</p>
+            <p class="text-gray-700 mb-12">Create your account</p>
         </div>
-        <form @submit.prevent="login">
+        <form @submit.prevent="register">
             <div class="grid">
                 <div class="mb-6 col-span-12">
                     <label class="block mb-2" for="email"> Email </label>
@@ -77,32 +76,9 @@ const login = async () => {
                     />
                 </div>
             </div>
-
-            <div class="flex justify-between items-center pt-1 pb-[2.05rem]">
-                <div class="flex items-center">
-                    <InputField
-                        variant="checkbox"
-                        v-model="credentials.remember_me"
-                        binary
-                        inputId="remember"
-                    />
-                    <label for="remember" class="ml-2 cursor-pointer">
-                        Remember me
-                    </label>
-                </div>
-                <router-link
-                    class="primary-text"
-                    :to="{
-                        name: 'Password Reset Request',
-                        params: { customer_id: currentCustomerUuid }
-                    }"
-                >
-                    Forgot Password
-                </router-link>
-            </div>
             <Button
-                class="w-full left-loading"
-                label="Sign In"
+                class="w-full left-loading mt-1"
+                label="Create Account"
                 :disabled="loading"
                 :loading="loading"
                 type="submit"
@@ -111,11 +87,11 @@ const login = async () => {
             <router-link
                 class="primary-text flex justify-center mt-6"
                 :to="{
-                    name: 'Register',
+                    name: 'Login',
                     params: { customer_id: currentCustomerUuid }
                 }"
             >
-                Don't have an account? Sign up
+                Already have an account? Sign in
             </router-link>
         </form>
     </div>

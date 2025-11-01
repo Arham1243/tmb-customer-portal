@@ -14,6 +14,14 @@ export const useAuthStore = defineStore('AuthStore', () => {
         });
     };
 
+    const register = (payload) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await AuthService.register(payload);
+            sessionStore.startUserSession(res.data.data);
+            return res.data;
+        });
+    };
+
     const forgotPassword = (payload) => {
         return globalStore.actionWrapper(async () => {
             const res = await AuthService.forgotPassword(payload);
@@ -36,14 +44,6 @@ export const useAuthStore = defineStore('AuthStore', () => {
         });
     };
 
-    const setupPassword = (payload) => {
-        return globalStore.actionWrapper(async () => {
-            const res = await AuthService.setupPassword(payload);
-            sessionStore.startUserSession(res.data.data);
-            return res.data;
-        });
-    };
-
     const logout = async () => {
         const res = await AuthService.logout();
         const sessionStore = useSessionStore();
@@ -53,9 +53,9 @@ export const useAuthStore = defineStore('AuthStore', () => {
 
     return {
         login,
+        register,
         logout,
         forgotPassword,
-        resetPassword,
-        setupPassword
+        resetPassword
     };
 });

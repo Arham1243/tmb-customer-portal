@@ -1,15 +1,13 @@
 <script setup>
-import { ref, onBeforeMount, watch } from 'vue';
+import { ref, onBeforeMount } from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
 import {} from '@/stores';
-import { useCustomerStore, useSessionStore } from '@/stores';
+import { useCustomerStore } from '@/stores';
 import { useToast } from 'primevue/usetoast';
 
 const customerStore = useCustomerStore();
-const sessionStore = useSessionStore();
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_KEY);
 
-const customer = sessionStore.user;
 const paymentMethods = ref([]);
 const showAddForm = ref(false);
 const toast = useToast();
@@ -196,15 +194,14 @@ const savePaymentMethod = async () => {
             result.setupIntent.payment_method
         );
 
+        await fetchPaymentMethods();
+        closeAddForm();
         toast.add({
             severity: 'success',
             summary: 'Success',
             detail: 'Payment method added successfully',
             life: 3000
         });
-
-        await fetchPaymentMethods();
-        closeAddForm();
     } catch (err) {
         console.error('Error saving payment method:', err);
         toast.add({

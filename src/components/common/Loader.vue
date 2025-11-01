@@ -7,5 +7,3 @@
         <ProgressSpinner style="width: 70px; height: 70px" strokeWidth="3" />
     </div>
 </template>
-
-<style lang="scss" scoped></style>

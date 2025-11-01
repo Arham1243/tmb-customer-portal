@@ -6,7 +6,7 @@ import ContactForm from './contacts/ContactForm.vue';
 
 const sessionStore = useSessionStore();
 const customerStore = useCustomerStore();
-const customer = sessionStore.user;
+const customer = sessionStore.customer;
 const loading = ref(false);
 const busy = ref(false);
 const contacts = ref([]);

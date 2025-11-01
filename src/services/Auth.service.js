@@ -5,6 +5,10 @@ export const login = (payload) => {
     return AxiosService.post(`${BASE_URL}/login`, payload);
 };
 
+export const register = (payload) => {
+    return AxiosService.post(`${BASE_URL}/register`, payload);
+};
+
 export const logout = () => {
     return AxiosService.post(`${BASE_URL}/logout`);
 };
@@ -17,10 +21,12 @@ export const resetPassword = (payload) => {
     return AxiosService.post(`${BASE_URL}/password/reset`, payload);
 };
 
-export const setupPassword = (payload) => {
-    return AxiosService.post(`${BASE_URL}/password/set`, payload);
-};
-
 export const me = () => {
     return AxiosService.get(`${BASE_URL}/me`);
+};
+
+export const meCustomer = (customerUuid) => {
+    return AxiosService.post(`${BASE_URL}/customers`, {
+        id: customerUuid
+    });
 };

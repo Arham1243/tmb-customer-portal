@@ -15,7 +15,7 @@ const formData = ref({
 </script>
 
 <template>
-    <h3 class="text-2xl font-bold mb-5">Company Information</h3>
+    <h3 class="text-2xl font-bold mb-5">Customer Information</h3>
     <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 gap-y-5">
         <div class="col-span-6">
             <label class="block mb-3">Name</label>

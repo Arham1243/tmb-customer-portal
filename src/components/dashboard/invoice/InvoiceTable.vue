@@ -13,7 +13,7 @@ const loading = ref(false);
 const items = ref([]);
 const router = useRouter();
 const totalRecords = ref();
-const currentUser = sessionStore?.user;
+const currentUser = sessionStore?.customer;
 const totalOutstanding = sessionStore?.info?.total_outstanding;
 const selectedItems = ref([]);
 

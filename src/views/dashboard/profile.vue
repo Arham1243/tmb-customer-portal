@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import CustomerForm from '@/components/dashboard/profile/CustomerForm.vue';
 import { useSessionStore } from '@/stores';
 const sessionStore = useSessionStore();
-const customer = sessionStore.user;
+const customer = sessionStore.customer;
 const activeTab = ref('customer');
 const customerDetails = ref(customer);
 </script>

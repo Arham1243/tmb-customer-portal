@@ -74,5 +74,3 @@ defineProps({
     <PhoneInput v-else-if="variant == 'phone'" v-bind="$attrs" />
     <DateField v-else-if="variant == 'date'" v-bind="$attrs" />
 </template>
-
-<style lang="scss" scoped></style>

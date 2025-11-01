@@ -50,5 +50,3 @@ const handleSearch = debounce(() => {
         ></i>
     </IconField>
 </template>
-
-<style lang="scss" scoped></style>

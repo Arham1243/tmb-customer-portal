@@ -9,6 +9,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const sessionStore = useSessionStore();
+    const currentCustomerUuid = sessionStore.user?.uuid;
     const { access_token: accessToken } = sessionStore.getCookie() || {};
 
     const isAuth = to.path.startsWith('/auth');
@@ -17,8 +18,10 @@ router.beforeEach(async (to, from, next) => {
         if (isAuth) {
             next();
         } else {
-            sessionStore.setIntended(to.fullPath);
-            next({ name: 'Login' });
+            next({
+                name: 'Login',
+                params: { customer_id: currentCustomerUuid }
+            });
         }
     } else if (accessToken && !isAuth) {
         next();

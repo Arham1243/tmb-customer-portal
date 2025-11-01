@@ -2,14 +2,14 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useCookies } from 'vue3-cookies';
 import { AuthService } from '@/services';
-import { useGlobalStore } from '@/stores';
 
 export const useSessionStore = defineStore('SessionStore', () => {
     const { cookies } = useCookies();
     const user = ref(null);
+    const customerCompany = ref(null);
     const myCompany = ref({});
     const info = ref({});
-    const intendedRoute = ref(sessionStorage.getItem('intendedRoute'));
+    const customer = ref(null);
 
     const startUserSession = (data) => {
         const date = new Date();
@@ -53,6 +53,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
         try {
             const res = (await AuthService.me()).data;
             user.value = res.data;
+            customer.value = res.customer;
             myCompany.value = res.my_company;
             info.value = res.info;
             return user.value;
@@ -61,31 +62,30 @@ export const useSessionStore = defineStore('SessionStore', () => {
         }
     };
 
-    const setIntended = (route) => {
-        intendedRoute.value = route;
-        sessionStorage.setItem('intendedRoute', route);
-    };
-
-    const consumeIntended = () => {
-        const route = intendedRoute.value;
-        intendedRoute.value = null;
-        sessionStorage.removeItem('intendedRoute');
-        return route;
+    const meCustomer = async (customerUuid) => {
+        try {
+            const res = await AuthService.meCustomer(customerUuid);
+            customerCompany.value = res?.data?.my_company;
+            return customerCompany.value;
+        } catch (error) {
+            throw error;
+        }
     };
 
     return {
         startUserSession,
         clearSessionState,
         me,
+        meCustomer,
         user,
+        customer,
+        customerCompany,
         myCompany,
         info,
         setEmail,
         setCookie,
         getCookie,
 
-        getEmail,
-        setIntended,
-        consumeIntended
+        getEmail
     };
 });

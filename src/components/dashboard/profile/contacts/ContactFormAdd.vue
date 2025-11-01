@@ -42,7 +42,7 @@ const updateField = (field, value) => {
 <template>
     <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
         <div class="mb-3 col-span-6">
-            <label class="block mb-3">First Name</label>
+            <label class="block mb-3 required">First Name</label>
             <InputField
                 variant="text"
                 id="first_name"
@@ -54,7 +54,7 @@ const updateField = (field, value) => {
         </div>
 
         <div class="mb-3 col-span-6">
-            <label class="block mb-3">Last Name</label>
+            <label class="block mb-3 required">Last Name</label>
             <InputField
                 id="last_name"
                 variant="text"
@@ -97,7 +97,7 @@ const updateField = (field, value) => {
         </div>
 
         <div class="mb-3 col-span-6">
-            <label class="block mb-3">Email</label>
+            <label class="block mb-3 required">Email</label>
             <InputField
                 id="email"
                 variant="text"
