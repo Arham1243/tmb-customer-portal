@@ -60,3 +60,10 @@ export const exportReport = (resource, payload) => {
 export const checkout = (payload) => {
     return AxiosService.post(`${BASE_URL}/customer-portal/checkout`, payload);
 };
+
+export const changeProfilePassword = (payload) => {
+    return AxiosService.post(
+        `${BASE_URL}/customer-portal/auth/change-profile-password`,
+        payload
+    );
+};

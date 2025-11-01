@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import CustomerForm from '@/components/dashboard/profile/CustomerForm.vue';
+import ChangePassword from '@/components/dashboard/profile/ChangePassword.vue';
 import { useSessionStore } from '@/stores';
 const sessionStore = useSessionStore();
 const customer = sessionStore.customer;
@@ -49,6 +50,18 @@ const customerDetails = ref(customer);
                                 text
                                 @click="activeTab = 'payment-methods'"
                             />
+                            <Button
+                                icon="pi pi-lock"
+                                class="!justify-start !py-4"
+                                :class="{
+                                    'link-active':
+                                        activeTab === 'change-password'
+                                }"
+                                label="Change Password"
+                                severity="secondary"
+                                text
+                                @click="activeTab = 'change-password'"
+                            />
                         </div>
                     </template>
                 </Card>
@@ -66,6 +79,10 @@ const customerDetails = ref(customer);
 
                         <div v-else-if="activeTab === 'payment-methods'">
                             <PaymentMethods />
+                        </div>
+
+                        <div v-else-if="activeTab === 'change-password'">
+                            <ChangePassword />
                         </div>
                     </template>
                 </Card>

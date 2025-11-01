@@ -90,6 +90,17 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
+    const changeProfilePassword = (payload) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await CustomerService.changeProfilePassword(payload);
+            globalStore.showSuccess(
+                'Password updated',
+                'Password updated successfully'
+            );
+            return res.data;
+        });
+    };
+
     return {
         selectedInvoices,
         setSelectedInvoices,
@@ -102,6 +113,7 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         getPaymentMethods,
         createSetupIntent,
         attachPaymentMethod,
-        checkout
+        checkout,
+        changeProfilePassword
     };
 });
