@@ -42,7 +42,6 @@ const isActive = (name) => route.name === name;
                         @click="pushRoute('Dashboard')"
                         severity="secondary"
                         text
-                        :loading="busy"
                         :disabled="busy"
                         :class="{
                             'link-active': isActive('Dashboard')
@@ -55,7 +54,6 @@ const isActive = (name) => route.name === name;
                         @click="pushRoute('History')"
                         severity="secondary"
                         text
-                        :loading="busy"
                         :disabled="busy"
                         :class="{
                             'link-active': isActive('History')
@@ -68,7 +66,6 @@ const isActive = (name) => route.name === name;
                         @click="pushRoute('Profile')"
                         severity="secondary"
                         text
-                        :loading="busy"
                         :disabled="busy"
                         :class="{
                             'link-active': isActive('Profile')
