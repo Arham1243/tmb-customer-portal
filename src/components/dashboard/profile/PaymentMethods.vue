@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onBeforeMount } from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
-import {} from '@/stores';
 import { useCustomerStore } from '@/stores';
 import { useToast } from 'primevue/usetoast';
 
