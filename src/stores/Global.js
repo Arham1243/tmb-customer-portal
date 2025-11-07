@@ -61,7 +61,7 @@ export const useGlobalStore = defineStore('GlobalStore', () => {
             severity: 'error',
             summary,
             detail,
-            life: 3000
+            life: 5000
         });
     };
 
