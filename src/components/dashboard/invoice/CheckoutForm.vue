@@ -333,7 +333,7 @@ const getPaymentMethodDisplay = (pm) => {
 
                     <!-- Bank Account (ACH) Confirmation -->
                     <div
-                        v-if="selectedPaymentMethod?.type === 'bank'"
+                        v-if="selectedPaymentMethod?.type === 'us_bank_account'"
                         class="flex mt-7 mb-3"
                     >
                         <Checkbox
