@@ -85,6 +85,11 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
 
     const checkout = async (payload) => {
         const res = await CustomerService.checkout(payload);
+        globalStore.showSuccess(
+            'Payment Successful',
+            'Your payment has been processed successfully'
+        );
+        selectedInvoices.value = [];
         return res.data;
     };
 
