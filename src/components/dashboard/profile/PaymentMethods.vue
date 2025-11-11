@@ -22,7 +22,7 @@ const busy = ref(false);
 
 const paymentTypeOptions = [
     { name: 'Credit Card', code: 'card' },
-    { name: 'ACH', code: 'us_bank_account' }
+    { name: 'Direct Bank transfer', code: 'us_bank_account' }
 ];
 
 const openAddForm = async () => {

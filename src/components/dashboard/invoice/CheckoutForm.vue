@@ -13,6 +13,7 @@ const customerStore = useCustomerStore();
 const loadingMethods = ref(false);
 const paymentMethods = ref([]);
 const acceptFee = ref(false);
+const acceptBank = ref(false);
 const processing = ref(false);
 const selectedPaymentMethod = ref(null);
 const selectedInvoices = customerStore.selectedInvoices;
@@ -122,7 +123,7 @@ const payInvoices = async () => {
             toastOptions = {
                 severity: 'info',
                 summary: 'Payment Processing',
-                detail: 'Your ACH payment is being processed. This may take 3-5 business days to complete.',
+                detail: 'Your bank transfer is being processed. This may take 3–5 business days to complete.',
                 life: 8000
             };
         } else {
@@ -273,9 +274,9 @@ const getPaymentMethodDisplay = (pm) => {
                                 class="pi pi-info-circle text-blue-600 mt-0.5"
                             ></i>
                             <div class="text-sm text-blue-800">
-                                <strong>ACH Payment Processing:</strong> Your
+                                <strong>Bank Transfer Processing:</strong> Your
                                 payment will be processed directly from your
-                                bank account. This typically takes 3-5 business
+                                bank account. This typically takes 3–5 business
                                 days to complete.
                             </div>
                         </div>
@@ -312,6 +313,7 @@ const getPaymentMethodDisplay = (pm) => {
                         </div>
                     </div>
 
+                    <!-- Card Payment Confirmation -->
                     <div
                         v-if="selectedPaymentMethod?.type === 'card'"
                         class="flex mt-7 mb-3"
@@ -329,6 +331,25 @@ const getPaymentMethodDisplay = (pm) => {
                         </label>
                     </div>
 
+                    <!-- Bank Account (ACH) Confirmation -->
+                    <div
+                        v-if="selectedPaymentMethod?.type === 'bank'"
+                        class="flex mt-7 mb-3"
+                    >
+                        <Checkbox
+                            binary
+                            v-model="acceptBank"
+                            class="mr-3"
+                            inputId="acceptBank"
+                        />
+                        <label for="acceptBank" class="cursor-pointer">
+                            I understand that my payment will be deducted
+                            directly from my bank account and may take 3–5
+                            business days to complete.
+                        </label>
+                    </div>
+
+                    <!-- Pay Button -->
                     <Button
                         :label="`Pay ${moneyFormat(total)}`"
                         size="large"
@@ -336,6 +357,9 @@ const getPaymentMethodDisplay = (pm) => {
                         :disabled="
                             (selectedPaymentMethod?.type === 'card' &&
                                 !acceptFee) ||
+                            (selectedPaymentMethod?.type ===
+                                'us_bank_account' &&
+                                !acceptBank) ||
                             !selectedPaymentMethod ||
                             loadingMethods ||
                             processing
