@@ -10,7 +10,7 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_KEY);
 const paymentMethods = ref([]);
 const showAddForm = ref(false);
 const toast = useToast();
-const selectedType = ref('');
+const selectedType = ref('us_bank_account');
 const setupClientSecret = ref(null);
 const stripe = ref(null);
 const elements = ref(null);
@@ -21,7 +21,6 @@ const loadingIntent = ref(false);
 const busy = ref(false);
 
 const paymentTypeOptions = [
-    { name: 'Credit Card', code: 'card' },
     { name: 'Direct Bank transfer', code: 'us_bank_account' }
 ];
 
@@ -269,7 +268,7 @@ onBeforeMount(() => {
                         class="w-full"
                         placeholder="Select"
                         @change="createSetupIntent"
-                        :disabled="busy || loadingIntent"
+                        :disabled="true"
                     />
                 </div>
 

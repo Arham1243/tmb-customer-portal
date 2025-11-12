@@ -68,38 +68,6 @@ const fetchPaymentMethods = async () => {
     }
 };
 
-function getFeeRate(brand) {
-    brand = brand?.toLowerCase();
-    const rates = {
-        amex: 0.0444 // 4.44% for Amex
-    };
-    return rates[brand] || 0.0395; // 3.95% for all other cards
-}
-
-function getFeeRateLabel(brand) {
-    const rate = getFeeRate(brand);
-    return `${(rate * 100).toFixed(2)}%`; // Shows "3.95%" or "4.44%"
-}
-
-const serviceFee = computed(() => {
-    if (
-        !selectedPaymentMethod.value ||
-        selectedPaymentMethod.value.type !== 'card'
-    )
-        return 0;
-    const rate = getFeeRate(selectedPaymentMethod.value.brand);
-    return subtotal.value * rate; // Calculates actual fee
-});
-
-const serviceFeeLabel = computed(() => {
-    if (
-        !selectedPaymentMethod.value ||
-        selectedPaymentMethod.value.type !== 'card'
-    )
-        return '';
-    return getFeeRateLabel(selectedPaymentMethod.value.brand);
-});
-
 const payInvoices = async () => {
     if (!selectedPaymentMethod.value) return;
 
@@ -149,7 +117,7 @@ const payInvoices = async () => {
 };
 
 const total = computed(() => {
-    return subtotal.value + serviceFee.value;
+    return subtotal.value;
 });
 
 watch(selectedPaymentMethod, () => {
@@ -254,13 +222,6 @@ const getPaymentMethodDisplay = (pm) => {
                                             getPaymentMethodDisplay(pm).subtitle
                                         }}
                                     </div>
-
-                                    <Tag
-                                        v-if="pm.type === 'us_bank_account'"
-                                        severity="success"
-                                        value="No service fee"
-                                        class="mt-2"
-                                    />
                                 </div>
                             </div>
                         </div>
@@ -290,20 +251,6 @@ const getPaymentMethodDisplay = (pm) => {
                             }}</span>
                         </div>
                         <div
-                            class="flex justify-between"
-                            v-if="selectedPaymentMethod?.type === 'card'"
-                        >
-                            <span class="text-gray-600">
-                                Service Fee
-                                <span class="text-gray-500">
-                                    ({{ serviceFeeLabel }})
-                                </span>
-                            </span>
-                            <span class="text-gray-900 font-medium">
-                                {{ moneyFormat(serviceFee) }}
-                            </span>
-                        </div>
-                        <div
                             class="flex justify-between border-t pt-5 font-bold mt-3"
                         >
                             <span class="text-gray-900 text-xl">Total</span>
@@ -311,24 +258,6 @@ const getPaymentMethodDisplay = (pm) => {
                                 moneyFormat(total)
                             }}</span>
                         </div>
-                    </div>
-
-                    <!-- Card Payment Confirmation -->
-                    <div
-                        v-if="selectedPaymentMethod?.type === 'card'"
-                        class="flex mt-7 mb-3"
-                    >
-                        <Checkbox
-                            binary
-                            v-model="acceptFee"
-                            class="mr-3"
-                            inputId="acceptFee"
-                        />
-                        <label for="acceptFee" class="cursor-pointer">
-                            I understand and accept that a service fee of
-                            {{ moneyFormat(serviceFee) }} will be added to my
-                            payment for credit card processing.
-                        </label>
                     </div>
 
                     <!-- Bank Account (ACH) Confirmation -->
@@ -355,8 +284,6 @@ const getPaymentMethodDisplay = (pm) => {
                         size="large"
                         class="w-full mt-6 !py-4"
                         :disabled="
-                            (selectedPaymentMethod?.type === 'card' &&
-                                !acceptFee) ||
                             (selectedPaymentMethod?.type ===
                                 'us_bank_account' &&
                                 !acceptBank) ||
