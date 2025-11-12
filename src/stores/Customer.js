@@ -83,11 +83,14 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
-    const checkout = (payload) => {
-        return globalStore.actionWrapper(async () => {
-            const res = await CustomerService.checkout(payload);
-            return res.data;
-        });
+    const checkout = async (payload) => {
+        const res = await CustomerService.checkout(payload);
+        globalStore.showSuccess(
+            'Payment Successful',
+            'Your payment has been processed successfully'
+        );
+        selectedInvoices.value = [];
+        return res.data;
     };
 
     const changeProfilePassword = (payload) => {

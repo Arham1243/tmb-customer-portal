@@ -13,6 +13,7 @@ const customerStore = useCustomerStore();
 const loadingMethods = ref(false);
 const paymentMethods = ref([]);
 const acceptFee = ref(false);
+const message = ref('');
 const acceptBank = ref(false);
 const processing = ref(false);
 const selectedPaymentMethod = ref(null);
@@ -80,37 +81,13 @@ const payInvoices = async () => {
             service_fee: serviceFee.value
         };
 
-        const result = await customerStore.checkout(payload);
+        await customerStore.checkout(payload);
 
-        // Determine toast
-        let toastOptions = {};
-        if (
-            result?.requires_webhook ||
-            selectedPaymentMethod.value.type === 'us_bank_account'
-        ) {
-            toastOptions = {
-                severity: 'info',
-                summary: 'Payment Processing',
-                detail: 'Your bank transfer is being processed. This may take 3–5 business days to complete.',
-                life: 8000
-            };
-        } else {
-            toastOptions = {
-                severity: 'success',
-                summary: 'Payment Successful',
-                detail: 'Your payment has been processed successfully.',
-                life: 3000
-            };
-        }
-
-        toast.add(toastOptions);
-
-        // Wait for toast to show before navigating
-        setTimeout(() => {
-            window.location.href = router.resolve({ name: 'Dashboard' }).href;
-        }, 500);
-    } catch (err) {
-        console.error(err);
+        pushRoute('Dashboard');
+    } catch (error) {
+        message.value = '';
+        message.value = error.response.data.message;
+        console.error(error);
     } finally {
         processing.value = false;
     }
@@ -161,6 +138,15 @@ const getPaymentMethodDisplay = (pm) => {
 
             <Card class="px-2">
                 <template #content>
+                    <div class="col-span-12 my-3" v-if="message">
+                        <Message severity="error" closable>
+                            <div
+                                v-html="message"
+                                class="error-message-content"
+                            ></div>
+                        </Message>
+                    </div>
+
                     <h3 class="text-2xl font-bold mb-4">Checkout</h3>
                     <div class="mt-6 mb-7">
                         <p class="mb-4 font-semibold text-lg">

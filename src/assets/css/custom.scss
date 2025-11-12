@@ -80,3 +80,32 @@ th {
 .company-logo{
     width: 100px;
 }
+.error-message-content {
+    line-height: 1.6;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.error-message-content ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+    list-style-type: disc;
+}
+
+.error-message-content li {
+    margin: 0.5rem 0;
+    list-style-type: disc !important;
+}
+
+.error-message-content strong {
+    font-weight: 600;
+    color: #dc2626;
+    font-size: 1.05em;
+}
+
+.error-message-content em {
+    font-style: italic;
+    color: #6b7280;
+    display: block;
+    margin-top: 0.5rem;
+}
