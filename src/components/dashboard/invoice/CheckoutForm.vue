@@ -77,8 +77,7 @@ const payInvoices = async () => {
         const payload = {
             payment_method_id: selectedPaymentMethod.value.id,
             amount: total.value,
-            invoice_ids: selectedInvoices.map((i) => i.id),
-            service_fee: serviceFee.value
+            invoice_ids: selectedInvoices.map((i) => i.id)
         };
 
         await customerStore.checkout(payload);
@@ -86,8 +85,11 @@ const payInvoices = async () => {
         pushRoute('Dashboard');
     } catch (error) {
         message.value = '';
-        message.value = error.response.data.message;
-        console.error(error);
+        message.value = error?.response?.data?.message;
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     } finally {
         processing.value = false;
     }
@@ -138,7 +140,7 @@ const getPaymentMethodDisplay = (pm) => {
 
             <Card class="px-2">
                 <template #content>
-                    <div class="col-span-12 my-3" v-if="message">
+                    <div class="col-span-12 mb-5" v-if="message">
                         <Message severity="error" closable>
                             <div
                                 v-html="message"

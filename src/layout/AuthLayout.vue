@@ -27,13 +27,14 @@ onBeforeMount(async () => {
         <Loader />
     </div>
     <NotFound v-else-if="notFound" />
+
     <div
         v-else
-        class="w-screen h-screen flex items-center justify-center bg-[#F6F9FB] overflow-x-hidden pb-4"
+        class="min-h-screen flex items-center justify-center bg-[#F6F9FB] overflow-x-hidden py-20"
     >
-        <div class="w-full max-w-[470px]">
+        <div class="w-full max-w-[540px]">
             <div
-                class="bg-white custom-shadow rounded-lg text-gray-800 px-[2.25rem] sm:px-[3.25rem] py-[2.57rem]"
+                class="bg-white custom-shadow rounded-lg text-gray-800 px-[2.25rem] sm:px-[1.75rem] py-[2rem] overflow-x-hidden"
             >
                 <router-view />
             </div>
@@ -43,8 +44,6 @@ onBeforeMount(async () => {
 </template>
 <style scoped>
 .custom-shadow {
-    box-shadow:
-        0 20px 25px -5px rgb(0 0 0 / 0.1),
-        0 8px 10px -6px rgb(0 0 0 / 0.1);
+    box-shadow: 0 0 15px 5px #0000001a;
 }
 </style>

@@ -12,6 +12,7 @@ import ApiDropdown from '@/components/common/ApiDropdown.vue';
 import ApiMultiselect from '@/components/common/ApiMultiselect.vue';
 import TypeConfirmation from '@/components/common/TypeConfirmation.vue';
 import BccRecipientsField from '@/components/common/BccRecipientsField.vue';
+import { install as VueRecaptchaInstall } from 'vue3-recaptcha-v2';
 import 'vue-tel-input/vue-tel-input.css';
 import '@/assets/css/styles.scss';
 
@@ -40,6 +41,10 @@ export function registerPlugins(app) {
         useGlobalProperties: true
     });
 
+    app.use(VueRecaptchaInstall, {
+        sitekey: '6Lc69wssAAAAAAjBccAi_8n1NhdF-EFL-s_bqQX9',
+        useRecaptchaNet: true
+    });
     app.use(ToastService);
     app.use(ConfirmationService);
 }
