@@ -20,7 +20,7 @@ jobs:
                   npm install
                   npm run build
               env:
-                  VITE_API_BASE_URL: https://demo-agreedsolutions.com/backend
+                  VITE_API_BASE_URL: https://cookds.servicore.io/backend
                   VITE_STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
 
             - name: 📂 Sync frontend build
