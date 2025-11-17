@@ -1,35 +1,60 @@
 on:
     push:
-        branches: [main]
+        branches: [main, demo]
     pull_request:
-        branches: [main]
+        branches: [main, demo]
 
 name: 🚀 Deploy website on push
 
 jobs:
     web-deploy:
-        name: 🎉 Deploy
+        name: 🎉 Deploy to ${{ matrix.environment }}
         runs-on: ubuntu-latest
-        if: github.ref == 'refs/heads/main'
+        strategy:
+            matrix:
+                include:
+                    # Production Environment
+                    - branch: main
+                      environment: production
+                      api_base_url: https://cookds.servicore.io/backend
+                      app_url: https://cookds.servicore.io
+                      stripe_key_secret: STRIPE_KEY
+                      ftp_server_secret: FTP_SERVER
+                      ftp_username_secret: FTP_USERNAME
+                      ftp_password_secret: FTP_PASSWORD
+
+                    # Demo Environment
+                    - branch: demo
+                      environment: demo
+                      api_base_url: https://demo.servicore.io/backend
+                      app_url: https://demo.servicore.io
+                      stripe_key_secret: STRIPE_KEY_DEMO
+                      ftp_server_secret: FTP_SERVER_DEMO
+                      ftp_username_secret: FTP_USERNAME_DEMO
+                      ftp_password_secret: FTP_PASSWORD_DEMO
+
         steps:
             - name: 🚚 Get latest code
+              if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', matrix.branch)
               uses: actions/checkout@v2
 
-            - name: 📦 Build Vue app
+            - name: 📦 Build Vue app for ${{ matrix.environment }}
+              if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', matrix.branch)
               run: |
                   npm install
                   npm run build
               env:
-                  VITE_API_BASE_URL: https://cookds.servicore.io/backend
-                  VITE_APP_URL: https://cookds.servicore.io
-                  VITE_STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
+                  VITE_API_BASE_URL: ${{ matrix.api_base_url }}
+                  VITE_APP_URL: ${{ matrix.app_url }}
+                  VITE_STRIPE_KEY: ${{ secrets[matrix.stripe_key_secret] }}
 
-            - name: 📂 Sync frontend build
+            - name: 📂 Sync frontend build to ${{ matrix.environment }}
+              if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', matrix.branch)
               uses: SamKirkland/FTP-Deploy-Action@v4.3.5
               with:
-                  server: ${{ secrets.FTP_SERVER }}
-                  username: ${{ secrets.FTP_USERNAME }}
-                  password: ${{ secrets.FTP_PASSWORD }}
+                  server: ${{ secrets[matrix.ftp_server_secret] }}
+                  username: ${{ secrets[matrix.ftp_username_secret] }}
+                  password: ${{ secrets[matrix.ftp_password_secret] }}
                   protocol: ftps
                   port: 21
                   security: loose
