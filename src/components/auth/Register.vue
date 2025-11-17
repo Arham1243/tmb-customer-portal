@@ -99,7 +99,7 @@ const handleLoadCallback = (token) => {
             <h2 class="text-lg !text-gray-600 font-bold mb-2">
                 {{ company?.name }}
             </h2>
-            <h4 class="text-3xl font-bold mb-2">Customer Portal test</h4>
+            <h4 class="text-3xl font-bold mb-2">Customer Portal</h4>
             <p class="text-gray-700 mb-12">Create your account</p>
         </div>
         <form @submit.prevent="register">
