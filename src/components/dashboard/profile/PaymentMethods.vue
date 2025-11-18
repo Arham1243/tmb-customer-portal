@@ -243,16 +243,21 @@ onBeforeMount(() => {
                 <Loader />
             </div>
 
-            <div class="flex items-center justify-between mb-4">
-                <h4 class="text-xl font-semibold">New Payment Method</h4>
-                <Button
-                    icon="pi pi-times"
-                    rounded
-                    text
-                    severity="secondary"
-                    @click="closeAddForm"
-                    :disabled="busy"
-                />
+            <div class="mb-5">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xl font-semibold">New Payment Method</h4>
+                    <Button
+                        icon="pi pi-times"
+                        rounded
+                        text
+                        severity="secondary"
+                        @click="closeAddForm"
+                        :disabled="busy"
+                    />
+                </div>
+                <p>
+                    Please search your bank, if can't be found in the list below
+                </p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
