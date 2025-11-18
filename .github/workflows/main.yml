@@ -1,8 +1,8 @@
 on:
     push:
-        branches: [main, demo]
+        branches: [main, demo, staging]
     pull_request:
-        branches: [main, demo]
+        branches: [main, demo, staging]
 
 name: 🚀 Deploy website on push
 
@@ -32,6 +32,16 @@ jobs:
                       ftp_server_secret: FTP_SERVER_DEMO
                       ftp_username_secret: FTP_USERNAME_DEMO
                       ftp_password_secret: FTP_PASSWORD_DEMO
+
+                    # Demo Environment
+                    - branch: staging
+                      environment: staging
+                      api_base_url: https://staging.servicore.io/backend
+                      app_url: https://staging.servicore.io
+                      stripe_key_secret: STRIPE_KEY_DEMO
+                      ftp_server_secret: FTP_SERVER_STAGING
+                      ftp_username_secret: FTP_USERNAME_STAGING
+                      ftp_password_secret: FTP_PASSWORD_STAGING
 
         steps:
             - name: 🚚 Get latest code
