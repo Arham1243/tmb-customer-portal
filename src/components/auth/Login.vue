@@ -45,6 +45,7 @@ const login = async () => {
     }
 };
 
+// recaptcha
 const recaptchaToken = ref('');
 const handleErrorCallback = () => {
     globalStore.showError(
