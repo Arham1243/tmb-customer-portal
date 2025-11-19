@@ -19,6 +19,14 @@ const canSave = ref(false);
 const loadingMethods = ref(false);
 const loadingIntent = ref(false);
 const busy = ref(false);
+const showVerifyDialog = ref(false);
+const verifyingPaymentMethod = ref(null);
+const microDeposit1 = ref('');
+const microDeposit2 = ref('');
+const verifyingBusy = ref(false);
+const showDeleteDialog = ref(false);
+const deletingPaymentMethod = ref(null);
+const deletingBusy = ref(false);
 
 const paymentTypeOptions = [
     { name: 'Direct Bank transfer', code: 'us_bank_account' }
@@ -30,7 +38,6 @@ const openAddForm = async () => {
 };
 
 const closeAddForm = () => {
-    selectedType.value = '';
     if (element.value) {
         element.value.unmount();
         element.value = null;
@@ -174,32 +181,53 @@ const savePaymentMethod = async () => {
             return;
         }
 
-        // Check if setup requires action (for ACH micro-deposits)
-        if (
+        // Determine if verification is required
+        const requiresVerification =
             result.setupIntent.status === 'requires_action' ||
-            result.setupIntent.status === 'requires_confirmation'
-        ) {
+            result.setupIntent.status === 'requires_confirmation';
+
+        // For ACH accounts, pass verification status to backend
+        if (selectedType.value === 'us_bank_account') {
+            await customerStore.attachPaymentMethod(
+                result.setupIntent.payment_method,
+                requiresVerification
+            );
+
+            await fetchPaymentMethods();
+            closeAddForm();
+
+            // Show appropriate message based on verification requirement
+            if (requiresVerification) {
+                toast.add({
+                    severity: 'success',
+                    summary: 'Bank Account Added',
+                    detail: 'Your bank account has been added successfully. Two micro-deposits will be sent to your account within 1-2 business days. Please verify the amounts once received.',
+                    life: 8000
+                });
+            } else {
+                toast.add({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: 'Bank account verified and added successfully',
+                    life: 3000
+                });
+            }
+        } else {
+            // For cards, attach normally
+            await customerStore.attachPaymentMethod(
+                result.setupIntent.payment_method,
+                false
+            );
+
+            await fetchPaymentMethods();
+            closeAddForm();
             toast.add({
-                severity: 'info',
-                summary: 'Verification Required',
-                detail: 'Please verify your bank account to complete setup.',
-                life: 5000
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Payment method added successfully',
+                life: 3000
             });
-            return;
         }
-
-        await customerStore.attachPaymentMethod(
-            result.setupIntent.payment_method
-        );
-
-        await fetchPaymentMethods();
-        closeAddForm();
-        toast.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Payment method added successfully',
-            life: 3000
-        });
     } catch (err) {
         console.error('Error saving payment method:', err);
         toast.add({
@@ -210,6 +238,129 @@ const savePaymentMethod = async () => {
         });
     } finally {
         busy.value = false;
+    }
+};
+
+const openVerifyDialog = (pm) => {
+    verifyingPaymentMethod.value = pm;
+    microDeposit1.value = '';
+    microDeposit2.value = '';
+    showVerifyDialog.value = true;
+};
+
+const closeVerifyDialog = () => {
+    showVerifyDialog.value = false;
+    verifyingPaymentMethod.value = null;
+    microDeposit1.value = '';
+    microDeposit2.value = '';
+};
+
+const submitVerification = async () => {
+    if (!microDeposit1.value || !microDeposit2.value) {
+        toast.add({
+            severity: 'warn',
+            summary: 'Missing Information',
+            detail: 'Please enter both micro-deposit amounts',
+            life: 3000
+        });
+        return;
+    }
+
+    verifyingBusy.value = true;
+    try {
+        await customerStore.verifyMicroDeposits({
+            payment_method_id: verifyingPaymentMethod.value.id,
+            amounts: [
+                parseInt(microDeposit1.value),
+                parseInt(microDeposit2.value)
+            ]
+        });
+
+        toast.add({
+            severity: 'success',
+            summary: 'Verified',
+            detail: 'Bank account verified successfully',
+            life: 3000
+        });
+
+        await fetchPaymentMethods();
+        closeVerifyDialog();
+    } catch (err) {
+        console.error('Verification error:', err);
+        toast.add({
+            severity: 'error',
+            summary: 'Verification Failed',
+            detail:
+                err.response?.data?.error ||
+                'Failed to verify bank account. Please check the amounts and try again.',
+            life: 5000
+        });
+    } finally {
+        verifyingBusy.value = false;
+    }
+};
+
+const openDeleteDialog = (pm) => {
+    deletingPaymentMethod.value = pm;
+    showDeleteDialog.value = true;
+};
+
+const closeDeleteDialog = () => {
+    showDeleteDialog.value = false;
+    deletingPaymentMethod.value = null;
+};
+
+const confirmDelete = async () => {
+    deletingBusy.value = true;
+    try {
+        await customerStore.removePaymentMethod(deletingPaymentMethod.value.id);
+
+        toast.add({
+            severity: 'success',
+            summary: 'Removed',
+            detail: 'Payment method removed successfully',
+            life: 3000
+        });
+
+        await fetchPaymentMethods();
+        closeDeleteDialog();
+    } catch (err) {
+        console.error('Delete error:', err);
+        toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail:
+                err.response?.data?.error || 'Failed to remove payment method',
+            life: 3000
+        });
+    } finally {
+        deletingBusy.value = false;
+    }
+};
+
+const getStatusSeverity = (status) => {
+    switch (status) {
+        case 'verified':
+            return 'success';
+        case 'pending':
+            return 'warn';
+        case 'failed':
+            return 'danger';
+        default:
+            return 'secondary';
+    }
+};
+
+const getStatusLabel = (status) => {
+    switch (status) {
+        case 'verified':
+            return 'Verified';
+        case 'pending':
+            return 'Pending Verification';
+        case 'failed':
+            return 'Verification Failed';
+        default:
+            return status;
     }
 };
 
@@ -243,16 +394,18 @@ onBeforeMount(() => {
                 <Loader />
             </div>
 
-            <div class="flex items-center justify-between mb-4">
-                <h4 class="text-xl font-semibold">New Payment Method</h4>
-                <Button
-                    icon="pi pi-times"
-                    rounded
-                    text
-                    severity="secondary"
-                    @click="closeAddForm"
-                    :disabled="busy"
-                />
+            <div class="mb-5">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xl font-semibold">New Payment Method</h4>
+                    <Button
+                        icon="pi pi-times"
+                        rounded
+                        text
+                        severity="secondary"
+                        @click="closeAddForm"
+                        :disabled="busy"
+                    />
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
@@ -273,6 +426,10 @@ onBeforeMount(() => {
                 </div>
 
                 <div class="col-span-12" v-if="selectedType">
+                    <p class="mb-2">
+                        Please search your bank, if can't be found in the list
+                        below
+                    </p>
                     <div
                         id="stripe-element"
                         :class="
@@ -307,7 +464,7 @@ onBeforeMount(() => {
             >
                 <template v-if="pm.type === 'card'">
                     <i class="pi pi-credit-card text-gray-400 !text-3xl"></i>
-                    <div>
+                    <div class="flex-1">
                         <div class="font-semibold text-[1.1rem]">
                             Credit Card - {{ pm.brand.toUpperCase() }}
                         </div>
@@ -315,16 +472,72 @@ onBeforeMount(() => {
                             ending in ••••{{ pm.last4 }}
                         </div>
                     </div>
+                    <div class="flex items-center gap-2">
+                        <Button
+                            icon="pi pi-trash"
+                            severity="danger"
+                            text
+                            rounded
+                            @click="openDeleteDialog(pm)"
+                        />
+                    </div>
                 </template>
                 <template v-else-if="pm.type === 'us_bank_account'">
                     <i class="pi pi-building text-gray-400 !text-3xl"></i>
-                    <div>
-                        <div class="font-semibold text-[1.1rem]">
-                            Bank Account - {{ pm.bank_name || 'ACH' }}
+                    <div class="flex-1">
+                        <div
+                            class="font-semibold text-[1.1rem] flex items-center gap-2"
+                        >
+                            <span
+                                >Bank Account -
+                                {{ pm.bank_name || 'ACH' }}</span
+                            >
+                            <Tag
+                                :value="getStatusLabel(pm.status)"
+                                :severity="getStatusSeverity(pm.status)"
+                            />
                         </div>
                         <div class="text-sm text-gray-500">
                             ending in ••••{{ pm.last4 }}
                         </div>
+                        <div
+                            v-if="pm.status === 'pending'"
+                            class="mt-2 text-sm text-blue-600"
+                        >
+                            <i class="pi pi-info-circle mr-1"></i>
+                            Two micro-deposits will be sent to your account
+                            within 1-2 business days. Please verify once
+                            received.
+                        </div>
+                        <div
+                            v-if="pm.status === 'failed'"
+                            class="mt-2 text-sm text-red-600"
+                        >
+                            <i class="pi pi-exclamation-triangle mr-1"></i>
+                            Verification failed. Please check the amounts and
+                            try again.
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Button
+                            v-if="pm.status === 'pending'"
+                            label="Verify"
+                            size="small"
+                            @click="openVerifyDialog(pm)"
+                        />
+                        <Button
+                            v-if="pm.status === 'failed'"
+                            label="Retry Verification"
+                            size="small"
+                            @click="openVerifyDialog(pm)"
+                        />
+                        <Button
+                            icon="pi pi-trash"
+                            severity="danger"
+                            text
+                            rounded
+                            @click="openDeleteDialog(pm)"
+                        />
                     </div>
                 </template>
             </div>
@@ -336,5 +549,139 @@ onBeforeMount(() => {
         >
             No payment methods found
         </div>
+
+        <!-- Verify Micro-Deposits Dialog -->
+        <Dialog
+            v-model:visible="showVerifyDialog"
+            modal
+            :header="
+                verifyingPaymentMethod?.status === 'failed'
+                    ? 'Retry Bank Account Verification'
+                    : 'Verify Bank Account'
+            "
+            :style="{ width: '500px' }"
+            :closable="!verifyingBusy"
+        >
+            <div class="space-y-4 mb-5">
+                <p
+                    v-if="verifyingPaymentMethod?.status === 'failed'"
+                    class="text-red-600 font-medium"
+                >
+                    <i class="pi pi-exclamation-triangle mr-1"></i>
+                    Previous verification attempt failed. Please double-check
+                    the amounts and try again.
+                </p>
+                <p class="text-gray-600">
+                    Please enter the two micro-deposit amounts that were sent to
+                    your bank account ending in ••••{{
+                        verifyingPaymentMethod?.last4
+                    }}.
+                </p>
+                <p class="text-sm text-gray-500">
+                    These amounts are typically less than $1.00 and should
+                    appear in your account within 1-2 business days.
+                </p>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-2 font-medium"
+                            >First Amount (cents)</label
+                        >
+                        <InputField
+                            id="deposit1"
+                            v-model="microDeposit1"
+                            variant="number"
+                            inputClass="w-full"
+                            placeholder="e.g., 32"
+                            :min="1"
+                            :max="99"
+                            :disabled="verifyingBusy"
+                        />
+                    </div>
+                    <div>
+                        <label class="block mb-2 font-medium"
+                            >Second Amount (cents)</label
+                        >
+                        <InputField
+                            id="deposit2"
+                            v-model="microDeposit2"
+                            variant="number"
+                            inputClass="w-full"
+                            placeholder="e.g., 45"
+                            :min="1"
+                            :max="99"
+                            :disabled="verifyingBusy"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <template #footer>
+                <Button
+                    label="Cancel"
+                    severity="secondary"
+                    @click="closeVerifyDialog"
+                    :disabled="verifyingBusy"
+                />
+                <Button
+                    label="Verify"
+                    @click="submitVerification"
+                    :loading="verifyingBusy"
+                    :disabled="verifyingBusy"
+                />
+            </template>
+        </Dialog>
+
+        <!-- Delete Confirmation Dialog -->
+        <Dialog
+            v-model:visible="showDeleteDialog"
+            modal
+            header="Remove Payment Method"
+            :style="{ width: '450px' }"
+            :closable="!deletingBusy"
+        >
+            <div class="space-y-4 mb-5">
+                <p class="text-gray-600">
+                    Are you sure you want to remove this payment method?
+                </p>
+                <div
+                    v-if="deletingPaymentMethod"
+                    class="bg-gray-50 p-4 rounded-lg"
+                >
+                    <div class="font-semibold">
+                        <template v-if="deletingPaymentMethod.type === 'card'">
+                            Credit Card -
+                            {{ deletingPaymentMethod.brand.toUpperCase() }}
+                        </template>
+                        <template v-else>
+                            Bank Account -
+                            {{ deletingPaymentMethod.bank_name || 'ACH' }}
+                        </template>
+                    </div>
+                    <div class="text-sm text-gray-500 mt-1">
+                        ending in ••••{{ deletingPaymentMethod.last4 }}
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500">
+                    This action cannot be undone.
+                </p>
+            </div>
+
+            <template #footer>
+                <Button
+                    label="Cancel"
+                    severity="secondary"
+                    @click="closeDeleteDialog"
+                    :disabled="deletingBusy"
+                />
+                <Button
+                    label="Remove"
+                    severity="danger"
+                    @click="confirmDelete"
+                    :loading="deletingBusy"
+                    :disabled="deletingBusy"
+                />
+            </template>
+        </Dialog>
     </div>
 </template>

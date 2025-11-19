@@ -51,11 +51,32 @@ export const useAuthStore = defineStore('AuthStore', () => {
         return res.data;
     };
 
+    const verifyOtp = (payload) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await AuthService.verifyOtp(payload);
+            sessionStore.startUserSession(res.data.data);
+            return res.data;
+        });
+    };
+
+    const resendOtp = (payload) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await AuthService.resendOtp(payload);
+            globalStore.showSuccess(
+                'OTP Resent',
+                'A new OTP has been sent to your email'
+            );
+            return res.data;
+        });
+    };
+
     return {
         login,
         register,
         logout,
         forgotPassword,
-        resetPassword
+        resetPassword,
+        verifyOtp,
+        resendOtp
     };
 });

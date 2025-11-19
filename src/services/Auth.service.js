@@ -28,3 +28,11 @@ export const me = () => {
 export const meCustomer = () => {
     return AxiosService.get(`${BASE_URL}/my-company`);
 };
+
+export const verifyOtp = (payload) => {
+    return AxiosService.post(`${BASE_URL}/otp/verify`, payload);
+};
+
+export const resendOtp = (payload) => {
+    return AxiosService.post(`${BASE_URL}/otp/resend`, payload);
+};

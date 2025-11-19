@@ -75,10 +75,15 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
-    const attachPaymentMethod = (paymentMethodId) => {
+    const attachPaymentMethod = (
+        paymentMethodId,
+        requiresVerification = false
+    ) => {
         return globalStore.actionWrapper(async () => {
-            const res =
-                await CustomerService.attachPaymentMethod(paymentMethodId);
+            const res = await CustomerService.attachPaymentMethod(
+                paymentMethodId,
+                requiresVerification
+            );
             return res.data;
         });
     };
@@ -104,6 +109,21 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
+    const verifyMicroDeposits = (payload) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await CustomerService.verifyMicroDeposits(payload);
+            return res.data;
+        });
+    };
+
+    const removePaymentMethod = (paymentMethodId) => {
+        return globalStore.actionWrapper(async () => {
+            const res =
+                await CustomerService.removePaymentMethod(paymentMethodId);
+            return res.data;
+        });
+    };
+
     return {
         selectedInvoices,
         setSelectedInvoices,
@@ -117,6 +137,8 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         createSetupIntent,
         attachPaymentMethod,
         checkout,
-        changeProfilePassword
+        changeProfilePassword,
+        verifyMicroDeposits,
+        removePaymentMethod
     };
 });
