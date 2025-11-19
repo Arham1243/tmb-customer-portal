@@ -3,6 +3,7 @@ import { onBeforeMount, ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore, useSessionStore, useGlobalStore } from '@/stores';
 import { RecaptchaV2 } from 'vue3-recaptcha-v2';
+import { getDeviceFingerprint, getDeviceInfo } from '@/utils/deviceFingerprint';
 const APP_URL = `${import.meta.env.VITE_APP_URL}`;
 
 const router = useRouter();
@@ -58,14 +59,36 @@ const register = async () => {
         globalStore.showError('reCAPTCHA', 'Please complete the reCAPTCHA');
         return;
     }
+
     try {
         loading.value = true;
-        await authStore.register(credentials.value);
+
+        const deviceFingerprint = getDeviceFingerprint();
+        const deviceInfo = getDeviceInfo();
+
+        const payload = {
+            ...credentials.value,
+            device_fingerprint: deviceFingerprint,
+            device_info: deviceInfo
+        };
+
+        await authStore.register(payload);
 
         const url = 'Dashboard';
         router.push(url);
     } catch (e) {
-        // Handle error
+        if (
+            e.response?.status === 400 &&
+            e.response?.data?.challenge === 'OTP_REQUIRED'
+        ) {
+            sessionStore.setEmail(credentials.value.email);
+            router.push({
+                name: 'CodeVerification',
+                query: {
+                    session: e.response.data.session
+                }
+            });
+        }
     } finally {
         loading.value = false;
     }
