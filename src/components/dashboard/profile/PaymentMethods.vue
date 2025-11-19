@@ -30,7 +30,6 @@ const openAddForm = async () => {
 };
 
 const closeAddForm = () => {
-    selectedType.value = '';
     if (element.value) {
         element.value.unmount();
         element.value = null;
@@ -243,16 +242,18 @@ onBeforeMount(() => {
                 <Loader />
             </div>
 
-            <div class="flex items-center justify-between mb-4">
-                <h4 class="text-xl font-semibold">New Payment Method</h4>
-                <Button
-                    icon="pi pi-times"
-                    rounded
-                    text
-                    severity="secondary"
-                    @click="closeAddForm"
-                    :disabled="busy"
-                />
+            <div class="mb-5">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xl font-semibold">New Payment Method</h4>
+                    <Button
+                        icon="pi pi-times"
+                        rounded
+                        text
+                        severity="secondary"
+                        @click="closeAddForm"
+                        :disabled="busy"
+                    />
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
@@ -273,6 +274,10 @@ onBeforeMount(() => {
                 </div>
 
                 <div class="col-span-12" v-if="selectedType">
+                    <p class="mb-2">
+                        Please search your bank, if can't be found in the list
+                        below
+                    </p>
                     <div
                         id="stripe-element"
                         :class="
