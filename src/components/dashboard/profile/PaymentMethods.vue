@@ -30,7 +30,6 @@ const openAddForm = async () => {
 };
 
 const closeAddForm = () => {
-    selectedType.value = '';
     if (element.value) {
         element.value.unmount();
         element.value = null;
@@ -255,9 +254,6 @@ onBeforeMount(() => {
                         :disabled="busy"
                     />
                 </div>
-                <p>
-                    Please search your bank, if can't be found in the list below
-                </p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
@@ -278,6 +274,10 @@ onBeforeMount(() => {
                 </div>
 
                 <div class="col-span-12" v-if="selectedType">
+                    <p class="mb-2">
+                        Please search your bank, if can't be found in the list
+                        below
+                    </p>
                     <div
                         id="stripe-element"
                         :class="
