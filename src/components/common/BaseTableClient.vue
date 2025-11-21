@@ -10,8 +10,8 @@ const props = defineProps({
     rowHover: { type: Boolean, default: true },
     stripedRows: { type: Boolean, default: true },
     paginator: { type: Boolean, default: true },
-    rows: { type: Number, default: 40 },
-    rowsPerPageOptions: { type: Array, default: () => [40, 60, 80, 100] }
+    rows: { type: Number, default: 10 },
+    rowsPerPageOptions: { type: Array, default: () => [10, 40, 60, 80, 100] }
 });
 
 const localPage = ref(0);
@@ -71,7 +71,7 @@ defineExpose({ paginatedData });
 <template>
     <DataTable
         v-bind="$attrs"
-        :value="sortedData"
+        :value="props.value"
         :data-key="dataKey"
         :row-hover="rowHover"
         :striped-rows="stripedRows"
@@ -85,7 +85,6 @@ defineExpose({ paginatedData });
         :scrollable="true"
         breakpoint="960px"
         @page="onPageChange"
-        @sort="onSort"
     >
         <template
             v-for="(name, index) in slotNames"

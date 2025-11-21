@@ -12,9 +12,9 @@ const props = defineProps({
     stripedRows: { type: Boolean, default: true },
     paginator: { type: Boolean, default: true },
     page: { type: Number, default: 1 },
-    rows: { type: Number, default: 40 },
+    rows: { type: Number, default: 10 },
     totalRecords: { type: Number, default: 0 },
-    rowsPerPageOptions: { type: Array, default: () => [40, 60, 80, 100] }
+    rowsPerPageOptions: { type: Array, default: () => [10, 40, 60, 80, 100] }
 });
 
 const localPage = ref(1);
