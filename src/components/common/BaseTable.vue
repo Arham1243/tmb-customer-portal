@@ -14,7 +14,10 @@ const props = defineProps({
     page: { type: Number, default: 1 },
     rows: { type: Number, default: 10 },
     totalRecords: { type: Number, default: 0 },
-    rowsPerPageOptions: { type: Array, default: () => [10, 40, 60, 80, 100] }
+    rowsPerPageOptions: {
+        type: Array,
+        default: () => [10, 20, 40, 60, 80, 100]
+    }
 });
 
 const localPage = ref(1);
