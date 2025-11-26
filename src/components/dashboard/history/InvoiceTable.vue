@@ -150,6 +150,9 @@ const getItems = async () => {
             customFilters: makeCustomFiltersPayload(),
             includes: [{ relation: 'invoice' }, { relation: 'paymentMethod' }]
         };
+        if (!payload.sort || payload.sort.length === 0) {
+            payload.sort = [{ field: 'date', direction: 'desc' }];
+        }
         const res = await customerStore.searchTransactionHistories(
             payload,
             params
@@ -217,7 +220,7 @@ const getPaymentMethodName = (data) => {
                 :value="items"
                 :page="pagination.page"
                 :sort-field="pagination.sortField"
-                :rows="pagination.limit"
+                :rows="20"
                 :total-records="totalRecords"
                 :loading="loading"
                 @sort="onSortChange"
