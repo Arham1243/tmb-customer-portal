@@ -193,8 +193,8 @@ const savePaymentMethod = async () => {
                 requiresVerification
             );
 
-            await fetchPaymentMethods();
             closeAddForm();
+            await fetchPaymentMethods();
 
             // Show appropriate message based on verification requirement
             if (requiresVerification) {
@@ -219,8 +219,8 @@ const savePaymentMethod = async () => {
                 false
             );
 
-            await fetchPaymentMethods();
             closeAddForm();
+            await fetchPaymentMethods();
             toast.add({
                 severity: 'success',
                 summary: 'Success',
@@ -322,8 +322,8 @@ const confirmDelete = async () => {
             life: 3000
         });
 
-        await fetchPaymentMethods();
         closeDeleteDialog();
+        await fetchPaymentMethods();
     } catch (err) {
         console.error('Delete error:', err);
         toast.add({
