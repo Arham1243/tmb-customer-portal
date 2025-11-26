@@ -1,7 +1,7 @@
 <script setup>
 import { onBeforeMount, ref, watch } from 'vue';
 import { useCustomerStore, useSessionStore } from '@/stores';
-import { PaginationOptions } from '@/config';
+import { PaginationOptions, SortFilterOptions } from '@/config';
 import { useHelpers } from '@/composables';
 import { useReportExport } from '@/composables/useReportExport';
 
@@ -13,6 +13,7 @@ const { formatDate, moneyFormat } = useHelpers();
 const customerStore = useCustomerStore();
 
 const pagination = new PaginationOptions();
+const sortFilters = new SortFilterOptions();
 const loading = ref(false);
 const items = ref([]);
 const totalRecords = ref();
@@ -65,6 +66,12 @@ const exportMenuItems = [
 
 const onPageChange = (event) => {
     pagination.updatePageParams(event);
+    getItems();
+};
+
+const onSortChange = (event) => {
+    pagination.resetPageParams();
+    sortFilters.updateSortFilters(event);
     getItems();
 };
 
@@ -138,6 +145,7 @@ const getItems = async () => {
             ...pagination.getPageParams()
         };
         const payload = {
+            ...sortFilters.getSortFilters(''),
             filters: makeFiltersPayload(),
             customFilters: makeCustomFiltersPayload(),
             includes: [{ relation: 'invoice' }, { relation: 'paymentMethod' }]
@@ -208,9 +216,11 @@ const getPaymentMethodName = (data) => {
             <BaseTable
                 :value="items"
                 :page="pagination.page"
+                :sort-field="pagination.sortField"
                 :rows="pagination.limit"
                 :total-records="totalRecords"
                 :loading="loading"
+                @sort="onSortChange"
                 @page="onPageChange"
             >
                 <template #header>
@@ -282,15 +292,26 @@ const getPaymentMethodName = (data) => {
                     </template>
                 </Column>
 
-                <Column field="invoice_number" header="Invoice Number" />
+                <Column sortable field="invoice_number" header="Invoice Number">
+                    <template #body="{ data }">
+                        <div v-if="data.transaction_type !== 'payment'">
+                            {{ data.invoice_number }}
+                        </div>
+                    </template>
+                </Column>
 
-                <Column field="date" header="Date">
+                <Column sortable field="date" header="Date">
                     <template #body="{ data }">
                         {{ formatDate(data.date) }}
                     </template>
                 </Column>
 
-                <Column field="amount" header="Amount" class="amount-column">
+                <Column
+                    sortable
+                    field="amount"
+                    header="Amount"
+                    class="amount-column"
+                >
                     <template #body="{ data }">
                         {{ moneyFormat(data.amount) }}
                     </template>
