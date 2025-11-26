@@ -1,5 +1,5 @@
 export class PaginationOptions {
-    constructor(page = 1, limit = 40, options = [40, 60, 80, 100]) {
+    constructor(page = 1, limit = 10, options = [10, 40, 60, 80, 100]) {
         this.page = page;
         this.limit = limit;
         this.rowsPerPageOptions = options;
