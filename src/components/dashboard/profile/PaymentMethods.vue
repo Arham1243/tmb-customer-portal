@@ -283,15 +283,15 @@ const submitVerification = async () => {
             life: 3000
         });
 
-        await fetchPaymentMethods();
         closeVerifyDialog();
+        await fetchPaymentMethods();
     } catch (err) {
         console.error('Verification error:', err);
         toast.add({
             severity: 'error',
             summary: 'Verification Failed',
             detail:
-                err.response?.data?.error ||
+                err.response?.data?.message ||
                 'Failed to verify bank account. Please check the amounts and try again.',
             life: 5000
         });

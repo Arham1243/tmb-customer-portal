@@ -119,11 +119,9 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
-    const verifyMicroDeposits = (payload) => {
-        return globalStore.actionWrapper(async () => {
-            const res = await CustomerService.verifyMicroDeposits(payload);
-            return res.data;
-        });
+    const verifyMicroDeposits = async (payload) => {
+        const res = await CustomerService.verifyMicroDeposits(payload);
+        return res.data;
     };
 
     const removePaymentMethod = (paymentMethodId) => {
