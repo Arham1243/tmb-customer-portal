@@ -7,6 +7,16 @@ export const searchInvoices = (payload, params) => {
     });
 };
 
+export const searchTransactionHistories = (payload, params) => {
+    return AxiosService.post(
+        `${BASE_URL}/customer-portal/transaction-histories/search`,
+        payload,
+        {
+            params
+        }
+    );
+};
+
 export const listContactTypes = (payload, params) => {
     return AxiosService.post(`${BASE_URL}/contact-types/list`, payload, {
         params
