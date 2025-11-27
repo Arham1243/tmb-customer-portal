@@ -28,9 +28,7 @@ const showDeleteDialog = ref(false);
 const deletingPaymentMethod = ref(null);
 const deletingBusy = ref(false);
 
-const paymentTypeOptions = [
-    { name: 'Direct Bank transfer', code: 'us_bank_account' }
-];
+const paymentTypeOptions = [{ name: 'ACH', code: 'us_bank_account' }];
 
 const openAddForm = async () => {
     showAddForm.value = true;
