@@ -1,7 +1,7 @@
 <script setup>
 import { onBeforeMount, ref, watch } from 'vue';
 import { useCustomerStore, useSessionStore } from '@/stores';
-import { PaginationOptions } from '@/config';
+import { PaginationOptions, SortFilterOptions } from '@/config';
 import { useHelpers } from '@/composables';
 import { useReportExport } from '@/composables/useReportExport';
 
@@ -13,6 +13,7 @@ const { formatDate, moneyFormat } = useHelpers();
 const customerStore = useCustomerStore();
 
 const pagination = new PaginationOptions();
+const sortFilters = new SortFilterOptions();
 const loading = ref(false);
 const items = ref([]);
 const totalRecords = ref();
@@ -22,6 +23,8 @@ const filters = ref({
     date_range: [],
     transaction_type: null
 });
+const showPaymentDialog = ref(false);
+const selectedPayment = ref(null);
 
 onBeforeMount(async () => {
     await getItems();
@@ -45,18 +48,30 @@ const exportMenuItems = [
         icon: 'pi pi-file-excel',
         label: 'To Excel',
         command: () =>
-            exportFilteredReport({ resource: 'invoices', format: 'excel' })
+            exportFilteredReport({
+                resource: 'transaction-histories',
+                format: 'excel'
+            })
     },
     {
         icon: 'pi pi-file-pdf',
         label: 'To PDF',
         command: () =>
-            exportFilteredReport({ resource: 'invoices', format: 'pdf' })
+            exportFilteredReport({
+                resource: 'transaction-histories',
+                format: 'pdf'
+            })
     }
 ];
 
 const onPageChange = (event) => {
     pagination.updatePageParams(event);
+    getItems();
+};
+
+const onSortChange = (event) => {
+    pagination.resetPageParams();
+    sortFilters.updateSortFilters(event);
     getItems();
 };
 
@@ -73,12 +88,7 @@ const exportFilteredReport = async ({ resource, format }) => {
 
         const payload = {
             format,
-            columns: [
-                'payment_status',
-                'invoice_number',
-                'invoice_date',
-                'outstanding_balance'
-            ],
+            columns: ['transaction_type', 'invoice_number', 'date', 'amount'],
             filters: filtersPayload,
             customFilters: customFilters
         };
@@ -105,27 +115,14 @@ const makeFiltersPayload = () => {
             field: 'customer_id',
             operator: '=',
             value: currentUser?.id
-        },
-        {
-            field: 'status',
-            operator: '=',
-            value: 'approved'
         }
     ];
     if (filters.value.transaction_type) {
-        if (filters.value.transaction_type === 'payment') {
-            filtersPayload.push({
-                field: 'payment_status',
-                operator: '=',
-                value: 'paid'
-            });
-        } else if (filters.value.transaction_type === 'invoice') {
-            filtersPayload.push({
-                field: 'payment_status',
-                operator: 'in',
-                value: ['unpaid', 'partially_paid']
-            });
-        }
+        filtersPayload.push({
+            field: 'transaction_type',
+            operator: '=',
+            value: filters.value.transaction_type
+        });
     }
     return filtersPayload;
 };
@@ -134,7 +131,7 @@ const makeCustomFiltersPayload = () => {
     const customFilters = [];
     if (filters.value.date_range.length) {
         customFilters.push({
-            field: 'invoice_date_range',
+            field: 'transaction_date_range',
             value: filters.value.date_range
         });
     }
@@ -144,12 +141,22 @@ const makeCustomFiltersPayload = () => {
 const getItems = async () => {
     try {
         loading.value = true;
-        const params = { ...pagination.getPageParams() };
-        const payload = {
-            filters: makeFiltersPayload(),
-            customFilters: makeCustomFiltersPayload()
+        const params = {
+            ...pagination.getPageParams()
         };
-        const res = await customerStore.searchInvoices(payload, params);
+        const payload = {
+            ...sortFilters.getSortFilters(''),
+            filters: makeFiltersPayload(),
+            customFilters: makeCustomFiltersPayload(),
+            includes: [{ relation: 'invoice' }, { relation: 'paymentMethod' }]
+        };
+        if (!payload.sort || payload.sort.length === 0) {
+            payload.sort = [{ field: 'date', direction: 'desc' }];
+        }
+        const res = await customerStore.searchTransactionHistories(
+            payload,
+            params
+        );
         items.value = res.data;
         totalRecords.value = res.meta.total;
     } finally {
@@ -158,7 +165,31 @@ const getItems = async () => {
 };
 
 const openInvoicePreview = (data) => {
-    window.open(`${API_BASE_URL}/invoice/${data.id}/preview`, '_blank');
+    if (data.invoice && data.invoice.id) {
+        window.open(
+            `${API_BASE_URL}/invoice/${data.invoice.id}/preview`,
+            '_blank'
+        );
+    }
+};
+
+const handleViewClick = (data) => {
+    if (data.transaction_type === 'invoice') {
+        openInvoicePreview(data);
+    } else if (data.transaction_type === 'payment') {
+        selectedPayment.value = data;
+        showPaymentDialog.value = true;
+    }
+};
+
+const getPaymentMethodName = (data) => {
+    if (data.payment_method_name) {
+        return data.payment_method_name;
+    }
+    if (data.paymentMethod && data.paymentMethod.name) {
+        return data.paymentMethod.name;
+    }
+    return 'N/A';
 };
 </script>
 
@@ -188,9 +219,11 @@ const openInvoicePreview = (data) => {
             <BaseTable
                 :value="items"
                 :page="pagination.page"
-                :rows="pagination.limit"
+                :sort-field="pagination.sortField"
+                :rows="20"
                 :total-records="totalRecords"
                 :loading="loading"
+                @sort="onSortChange"
                 @page="onPageChange"
             >
                 <template #header>
@@ -200,7 +233,7 @@ const openInvoicePreview = (data) => {
                         <div class="col-span-4">
                             <label
                                 for="status"
-                                class="mb-2 block font-medium text-gray-700"
+                                class="mb-2 block font-semibold text-gray-700"
                             >
                                 Transaction Type
                             </label>
@@ -220,7 +253,7 @@ const openInvoicePreview = (data) => {
                         <div class="col-span-4">
                             <label
                                 for="status"
-                                class="mb-2 block font-medium text-gray-700"
+                                class="mb-2 block font-semibold text-gray-700"
                             >
                                 Date
                             </label>
@@ -244,17 +277,17 @@ const openInvoicePreview = (data) => {
                         </div>
                     </div>
                 </template>
-                <template #empty> No invoices found. </template>
+                <template #empty> No transaction history found. </template>
 
                 <Column
                     header="Transaction Type"
                     :sortable="true"
-                    field="payment_status"
+                    field="transaction_type"
                 >
                     <template #body="{ data }">
                         <StatusTag
                             :status="
-                                data.payment_status === 'paid'
+                                data.transaction_type === 'payment'
                                     ? 'Payment'
                                     : 'Invoice'
                             "
@@ -262,31 +295,35 @@ const openInvoicePreview = (data) => {
                     </template>
                 </Column>
 
-                <Column field="invoice_number" header="Invoice Number" />
-
-                <Column field="invoice_date" header="Date">
+                <Column sortable field="invoice_number" header="Invoice Number">
                     <template #body="{ data }">
-                        {{ formatDate(data.invoice_date) }}
+                        <div v-if="data.transaction_type !== 'payment'">
+                            {{ data.invoice_number }}
+                        </div>
+                    </template>
+                </Column>
+
+                <Column sortable field="date" header="Date">
+                    <template #body="{ data }">
+                        {{ formatDate(data.date) }}
                     </template>
                 </Column>
 
                 <Column
-                    field="outstanding_balance"
+                    sortable
+                    field="amount"
                     header="Amount"
                     class="amount-column"
                 >
                     <template #body="{ data }">
-                        {{ moneyFormat(data.outstanding_balance) }}
+                        {{ moneyFormat(data.amount) }}
                     </template>
                 </Column>
-                <Column
-                    field="pdf_path"
-                    header="View"
-                    class="text-center flex justify-center"
-                >
+
+                <Column header="View" class="text-center flex justify-center">
                     <template #body="{ data }">
                         <Button
-                            @click="openInvoicePreview(data)"
+                            @click="handleViewClick(data)"
                             text
                             class="!p-2"
                             variant="outlined"
@@ -298,4 +335,93 @@ const openInvoicePreview = (data) => {
             </BaseTable>
         </template>
     </Card>
+
+    <!-- Payment Details Dialog -->
+    <Dialog
+        v-model:visible="showPaymentDialog"
+        modal
+        header="Payment Details"
+        :style="{ width: '500px' }"
+    >
+        <div v-if="selectedPayment" class="space-y-5">
+            <!-- Top Section -->
+            <Card class="!bg-gray-100">
+                <template #title>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                        Payment Summary
+                    </h3>
+                </template>
+                <template #content>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-0">Amount</p>
+                            <p class="text-lg font-bold">
+                                {{ moneyFormat(selectedPayment.amount) }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-sm text-gray-500 mb-0">Status</p>
+                            <div class="mt-1">
+                                <StatusTag :status="selectedPayment.status" />
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </Card>
+
+            <!-- Details Card -->
+            <Card class="!bg-gray-100">
+                <template #title>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                        Details
+                    </h3>
+                </template>
+                <template #content>
+                    <div class="grid gap-y-2">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-0">Date</p>
+                            <p class="text-base font-medium">
+                                {{ formatDate(selectedPayment.date) }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-sm text-gray-500 mb-0">
+                                Invoice Number
+                            </p>
+                            <p class="text-base font-medium">
+                                {{ selectedPayment.invoice_number }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 mb-0">
+                                Payment Method
+                            </p>
+                            <p class="text-base font-medium capitalize">
+                                {{ getPaymentMethodName(selectedPayment) }}
+                            </p>
+                        </div>
+
+                        <div v-if="selectedPayment.reference_number">
+                            <p class="text-sm text-gray-500 mb-0">
+                                Reference Number
+                            </p>
+                            <p class="text-base font-medium">
+                                {{ selectedPayment.reference_number }}
+                            </p>
+                        </div>
+                    </div>
+                </template>
+            </Card>
+        </div>
+
+        <template #footer>
+            <Button
+                label="Close"
+                @click="showPaymentDialog = false"
+                variant="outlined"
+            />
+        </template>
+    </Dialog>
 </template>

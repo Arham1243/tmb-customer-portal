@@ -18,6 +18,16 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
+    const searchTransactionHistories = (payload, params) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await CustomerService.searchTransactionHistories(
+                payload,
+                params
+            );
+            return res.data;
+        });
+    };
+
     const exportReport = (resource, payload) => {
         return globalStore.actionWrapper(async () => {
             const res = await CustomerService.exportReport(resource, payload);
@@ -109,11 +119,9 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
-    const verifyMicroDeposits = (payload) => {
-        return globalStore.actionWrapper(async () => {
-            const res = await CustomerService.verifyMicroDeposits(payload);
-            return res.data;
-        });
+    const verifyMicroDeposits = async (payload) => {
+        const res = await CustomerService.verifyMicroDeposits(payload);
+        return res.data;
     };
 
     const removePaymentMethod = (paymentMethodId) => {
@@ -128,6 +136,7 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         selectedInvoices,
         setSelectedInvoices,
         searchInvoices,
+        searchTransactionHistories,
         exportReport,
         listContactTypes,
         searchContacts,

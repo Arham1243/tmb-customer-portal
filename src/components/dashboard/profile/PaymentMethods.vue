@@ -191,8 +191,8 @@ const savePaymentMethod = async () => {
                 requiresVerification
             );
 
-            await fetchPaymentMethods();
             closeAddForm();
+            await fetchPaymentMethods();
 
             // Show appropriate message based on verification requirement
             if (requiresVerification) {
@@ -217,8 +217,8 @@ const savePaymentMethod = async () => {
                 false
             );
 
-            await fetchPaymentMethods();
             closeAddForm();
+            await fetchPaymentMethods();
             toast.add({
                 severity: 'success',
                 summary: 'Success',
@@ -281,15 +281,15 @@ const submitVerification = async () => {
             life: 3000
         });
 
-        await fetchPaymentMethods();
         closeVerifyDialog();
+        await fetchPaymentMethods();
     } catch (err) {
         console.error('Verification error:', err);
         toast.add({
             severity: 'error',
             summary: 'Verification Failed',
             detail:
-                err.response?.data?.error ||
+                err.response?.data?.message ||
                 'Failed to verify bank account. Please check the amounts and try again.',
             life: 5000
         });
@@ -320,8 +320,8 @@ const confirmDelete = async () => {
             life: 3000
         });
 
-        await fetchPaymentMethods();
         closeDeleteDialog();
+        await fetchPaymentMethods();
     } catch (err) {
         console.error('Delete error:', err);
         toast.add({
@@ -612,6 +612,10 @@ onBeforeMount(() => {
                         />
                     </div>
                 </div>
+                <p class="text-sm font-bold mt-2">
+                    Enter the exact amounts Stripe deposited into your bank
+                    account in cents. For example, if you see 0.23 USD, enter 23
+                </p>
             </div>
 
             <template #footer>
