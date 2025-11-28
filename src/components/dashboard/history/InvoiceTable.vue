@@ -84,13 +84,17 @@ const exportFilteredReport = async ({ resource, format }) => {
         loading.value = true;
 
         const filtersPayload = makeFiltersPayload();
-        const customFilters = makeCustomFiltersPayload();
 
         const payload = {
             format,
-            columns: ['transaction_type', 'invoice_number', 'date', 'amount'],
-            filters: filtersPayload,
-            customFilters: customFilters
+            columns: [
+                'transaction_type',
+                'invoice_number',
+                'date',
+                'amount',
+                'status'
+            ],
+            filters: filtersPayload
         };
 
         await exportReport(resource, payload);
@@ -124,54 +128,40 @@ const makeFiltersPayload = () => {
             value: filters.value.transaction_type
         });
     }
-    return filtersPayload;
-};
-
-const makeCustomFiltersPayload = () => {
-    const customFilters = [];
-    if (filters.value.date_range.length) {
-        customFilters.push({
+    if (filters.value.date_range[0] && filters.value.date_range[1]) {
+        filtersPayload.push({
             field: 'transaction_date_range',
             value: filters.value.date_range
         });
     }
-    return customFilters;
+    return filtersPayload;
 };
 
 const getItems = async () => {
     try {
         loading.value = true;
-        const params = {
-            ...pagination.getPageParams()
-        };
         const payload = {
-            ...sortFilters.getSortFilters(''),
-            filters: makeFiltersPayload(),
-            customFilters: makeCustomFiltersPayload(),
-            includes: [{ relation: 'invoice' }, { relation: 'paymentMethod' }]
+            filters: makeFiltersPayload()
         };
-        if (!payload.sort || payload.sort.length === 0) {
-            payload.sort = [{ field: 'date', direction: 'desc' }];
-        }
-        const res = await customerStore.searchTransactionHistories(
-            payload,
-            params
-        );
+        const res = await customerStore.searchTransactionHistories(payload, {});
         items.value = res.data;
-        totalRecords.value = res.meta.total;
     } finally {
         loading.value = false;
     }
 };
 
 const openInvoicePreview = (data) => {
-    if (data.invoice && data.invoice.id) {
-        window.open(
-            `${API_BASE_URL}/invoice/${data.invoice.id}/preview`,
-            '_blank'
-        );
+    if (data.id) {
+        window.open(`${API_BASE_URL}/invoice/${data.id}/preview`, '_blank');
     }
 };
+
+function formatInvoiceNumbers(invoiceNumbers) {
+    if (!invoiceNumbers) return '';
+    return Array.isArray(invoiceNumbers)
+        ? invoiceNumbers.join(', ')
+        : invoiceNumbers;
+}
 
 const handleViewClick = (data) => {
     if (data.transaction_type === 'invoice') {
@@ -180,16 +170,6 @@ const handleViewClick = (data) => {
         selectedPayment.value = data;
         showPaymentDialog.value = true;
     }
-};
-
-const getPaymentMethodName = (data) => {
-    if (data.payment_method_name) {
-        return data.payment_method_name;
-    }
-    if (data.paymentMethod && data.paymentMethod.name) {
-        return data.paymentMethod.name;
-    }
-    return 'N/A';
 };
 </script>
 
@@ -216,16 +196,7 @@ const getPaymentMethodName = (data) => {
 
     <Card class="py-3 px-2">
         <template #content>
-            <BaseTable
-                :value="items"
-                :page="pagination.page"
-                :sort-field="pagination.sortField"
-                :rows="20"
-                :total-records="totalRecords"
-                :loading="loading"
-                @sort="onSortChange"
-                @page="onPageChange"
-            >
+            <BaseTableClient :value="items" :rows="20" :loading="loading">
                 <template #header>
                     <div
                         class="grid grid-cols-12 items-end gap-4 space-y-1 mb-10"
@@ -297,9 +268,7 @@ const getPaymentMethodName = (data) => {
 
                 <Column sortable field="invoice_number" header="Invoice Number">
                     <template #body="{ data }">
-                        <div v-if="data.transaction_type !== 'payment'">
-                            {{ data.invoice_number }}
-                        </div>
+                        {{ formatInvoiceNumbers(data.invoice_number) }}
                     </template>
                 </Column>
 
@@ -320,6 +289,12 @@ const getPaymentMethodName = (data) => {
                     </template>
                 </Column>
 
+                <Column sortable field="status" header="Status">
+                    <template #body="{ data }">
+                        <StatusTag :status="data.status" />
+                    </template>
+                </Column>
+
                 <Column header="View" class="text-center flex justify-center">
                     <template #body="{ data }">
                         <Button
@@ -332,7 +307,7 @@ const getPaymentMethodName = (data) => {
                         />
                     </template>
                 </Column>
-            </BaseTable>
+            </BaseTableClient>
         </template>
     </Card>
 
@@ -387,19 +362,26 @@ const getPaymentMethodName = (data) => {
                         </div>
 
                         <div>
-                            <p class="text-sm text-gray-500 mb-0">
-                                Invoice Number
-                            </p>
-                            <p class="text-base font-medium">
-                                {{ selectedPayment.invoice_number }}
-                            </p>
+                            <p class="text-sm text-gray-500 mb-1">Invoices</p>
+                            <div
+                                v-for="invoice in selectedPayment.invoices"
+                                :key="invoice.invoice_number"
+                                class="flex justify-between mb-3"
+                            >
+                                <span class="font-medium text-gray-700">{{
+                                    invoice.invoice_number
+                                }}</span>
+                                <span>{{
+                                    moneyFormat(invoice.applied_amount)
+                                }}</span>
+                            </div>
                         </div>
                         <div>
                             <p class="text-sm text-gray-500 mb-0">
                                 Payment Method
                             </p>
                             <p class="text-base font-medium capitalize">
-                                {{ getPaymentMethodName(selectedPayment) }}
+                                {{ selectedPayment.paymentMethod?.name }}
                             </p>
                         </div>
 

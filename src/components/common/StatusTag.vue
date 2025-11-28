@@ -16,11 +16,17 @@ const tagProps = computed(() => {
         case 'active':
         case 'billed':
         case 'paid':
-        case 'payment':
+        case 'connected':
         case 'approved':
+        case 'posted':
+        case 'payment':
+        case 'settled':
             return { value, severity: 'success' };
         case 'no':
         case 'inactive':
+        case 'not_connected':
+        case 'not_posted':
+        case 'declined':
             return { value, severity: 'danger' };
         case 'unbilled':
         case 'pending':
