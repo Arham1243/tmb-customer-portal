@@ -417,9 +417,19 @@ onBeforeMount(() => {
                             class="mt-2 text-sm text-blue-600"
                         >
                             <i class="pi pi-info-circle mr-1"></i>
-                            Two micro-deposits will be sent to your account
-                            within 1-2 business days. Please verify once
-                            received.
+                            To ensure the security of your account, we will
+                            initiate a micro-deposit (less than $1.00) to your
+                            linked bank account. This transaction typically
+                            appears within 1-2 business days.
+                            <div class="mt-2">
+                                <span class="font-semibold"
+                                    >Action Required:</span
+                                >
+                                The deposit will contain a unique descriptor
+                                code beginning with SM. Please record this code,
+                                as it is required to finalize your bank account
+                                verification.
+                            </div>
                         </div>
                         <div
                             v-if="pm.status === 'failed'"
