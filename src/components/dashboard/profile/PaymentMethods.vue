@@ -21,8 +21,8 @@ const loadingIntent = ref(false);
 const busy = ref(false);
 const showVerifyDialog = ref(false);
 const verifyingPaymentMethod = ref(null);
-const microDeposit1 = ref('');
-const microDeposit2 = ref('');
+const descriptorCode = ref('');
+const verficationError = ref('');
 const verifyingBusy = ref(false);
 const showDeleteDialog = ref(false);
 const deletingPaymentMethod = ref(null);
@@ -54,18 +54,16 @@ const fetchPaymentMethods = async () => {
 };
 
 const createSetupIntent = async () => {
-    if (!selectedType.value) return;
     loadingIntent.value = true;
     try {
-        // Unmount previous element if it exists
+        // Unmount previous element if exists
         if (element.value) {
             element.value.unmount();
             element.value = null;
         }
 
-        const res = await customerStore.createSetupIntent({
-            type: selectedType.value
-        });
+        // Call your backend endpoint
+        const res = await customerStore.createSetupIntent();
         setupClientSecret.value = res.client_secret;
 
         stripe.value = await stripePromise;
@@ -73,68 +71,24 @@ const createSetupIntent = async () => {
             clientSecret: setupClientSecret.value
         });
 
-        if (!elements.value) {
-            toast.add({
-                severity: 'error',
-                summary: 'Oops!',
-                detail: 'Stripe Elements failed to initialize',
-                life: 3000
-            });
-            return;
-        }
-
-        if (selectedType.value === 'card') {
-            element.value = elements.value.create('card', {
-                style: {
-                    base: {
-                        color: '#111827',
-                        fontFamily: 'Inter, system-ui, sans-serif',
-                        fontSize: '16px',
-                        '::placeholder': { color: '#9ca3af' }
-                    },
-                    invalid: {
-                        color: '#dc2626'
-                    }
-                }
-            });
-
-            element.value.mount('#stripe-element');
-            element.value.on('change', (event) => {
-                canSave.value = event.complete;
-            });
-        } else if (selectedType.value === 'us_bank_account') {
-            // For ACH, use the Payment Element which handles US Bank Account
-            element.value = elements.value.create('payment', {
-                layout: {
-                    type: 'accordion',
-                    defaultCollapsed: false,
-                    radios: false,
-                    spacedAccordionItems: true
-                }
-            });
-
-            if (!element.value) {
-                toast.add({
-                    severity: 'error',
-                    summary: 'Oops!',
-                    detail: 'Failed to create payment element',
-                    life: 3000
-                });
-                return;
+        // Mount Payment Element
+        element.value = elements.value.create('payment', {
+            layout: {
+                type: 'accordion',
+                defaultCollapsed: false,
+                radios: false,
+                spacedAccordionItems: true
             }
+        });
 
-            element.value.mount('#stripe-element');
+        element.value.mount('#stripe-element');
 
-            element.value.on('ready', () => {
-                console.log('Payment element ready');
-            });
-
-            element.value.on('change', (event) => {
-                canSave.value = event.complete;
-            });
-        }
+        element.value.on('ready', () => console.log('Payment element ready'));
+        element.value.on('change', (event) => {
+            canSave.value = event.complete;
+        });
     } catch (err) {
-        console.error('Error creating setup intent:', err);
+        console.error('Error creating bank setup intent:', err);
         toast.add({
             severity: 'error',
             summary: 'Error',
@@ -210,21 +164,6 @@ const savePaymentMethod = async () => {
                     life: 3000
                 });
             }
-        } else {
-            // For cards, attach normally
-            await customerStore.attachPaymentMethod(
-                result.setupIntent.payment_method,
-                false
-            );
-
-            closeAddForm();
-            await fetchPaymentMethods();
-            toast.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: 'Payment method added successfully',
-                life: 3000
-            });
         }
     } catch (err) {
         console.error('Error saving payment method:', err);
@@ -241,37 +180,24 @@ const savePaymentMethod = async () => {
 
 const openVerifyDialog = (pm) => {
     verifyingPaymentMethod.value = pm;
-    microDeposit1.value = '';
-    microDeposit2.value = '';
+    descriptorCode.value = '';
+    verficationError.value = '';
     showVerifyDialog.value = true;
 };
 
 const closeVerifyDialog = () => {
     showVerifyDialog.value = false;
     verifyingPaymentMethod.value = null;
-    microDeposit1.value = '';
-    microDeposit2.value = '';
+    descriptorCode.value = '';
 };
 
 const submitVerification = async () => {
-    if (!microDeposit1.value || !microDeposit2.value) {
-        toast.add({
-            severity: 'warn',
-            summary: 'Missing Information',
-            detail: 'Please enter both micro-deposit amounts',
-            life: 3000
-        });
-        return;
-    }
-
     verifyingBusy.value = true;
+    verficationError.value = '';
     try {
-        await customerStore.verifyMicroDeposits({
+        await customerStore.verifyBankAccount({
             payment_method_id: verifyingPaymentMethod.value.id,
-            amounts: [
-                parseInt(microDeposit1.value),
-                parseInt(microDeposit2.value)
-            ]
+            descriptor_code: 'SM' + descriptorCode.value
         });
 
         toast.add({
@@ -284,15 +210,12 @@ const submitVerification = async () => {
         closeVerifyDialog();
         await fetchPaymentMethods();
     } catch (err) {
-        console.error('Verification error:', err);
-        toast.add({
-            severity: 'error',
-            summary: 'Verification Failed',
-            detail:
-                err.response?.data?.message ||
-                'Failed to verify bank account. Please check the amounts and try again.',
-            life: 5000
-        });
+        if (err.response?.status === 400) {
+            closeVerifyDialog();
+            await fetchPaymentMethods();
+        } else {
+            verficationError.value = err.response?.data?.message;
+        }
     } finally {
         verifyingBusy.value = false;
     }
@@ -322,15 +245,6 @@ const confirmDelete = async () => {
 
         closeDeleteDialog();
         await fetchPaymentMethods();
-    } catch (err) {
-        console.error('Delete error:', err);
-        toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail:
-                err.response?.data?.error || 'Failed to remove payment method',
-            life: 3000
-        });
     } finally {
         deletingBusy.value = false;
     }
@@ -560,61 +474,54 @@ onBeforeMount(() => {
             :style="{ width: '500px' }"
             :closable="!verifyingBusy"
         >
+            <Message
+                v-if="verficationError"
+                severity="error"
+                closable
+                class="mb-5"
+            >
+                <div v-html="verficationError"></div>
+            </Message>
+
             <div class="space-y-4 mb-5">
                 <p
                     v-if="verifyingPaymentMethod?.status === 'failed'"
                     class="text-red-600 font-medium"
                 >
                     <i class="pi pi-exclamation-triangle mr-1"></i>
-                    Previous verification attempt failed. Please double-check
-                    the amounts and try again.
-                </p>
-                <p class="text-gray-600">
-                    Please enter the two micro-deposit amounts that were sent to
-                    your bank account ending in ••••{{
-                        verifyingPaymentMethod?.last4
-                    }}.
-                </p>
-                <p class="text-sm text-gray-500">
-                    These amounts are typically less than $1.00 and should
-                    appear in your account within 1-2 business days.
+                    Previous verification attempt failed. Please double check
+                    the code and try again.
                 </p>
 
-                <div class="grid grid-cols-2 gap-4">
+                <p class="text-gray-600">
+                    Stripe sent a small deposit to this bank account. To verify
+                    this account, please confirm the 6-digit code in the
+                    statement descriptor of this deposit.
+                </p>
+
+                <div class="grid gap-4">
                     <div>
-                        <label class="block mb-2 font-medium"
-                            >First Amount (cents)</label
+                        <label
+                            for="descriptor_code"
+                            class="block mb-2 font-medium"
+                            >Descriptor code</label
                         >
-                        <InputField
-                            id="deposit1"
-                            v-model="microDeposit1"
-                            variant="number"
-                            inputClass="w-full"
-                            placeholder="e.g., 32"
-                            :min="1"
-                            :max="99"
-                            :disabled="verifyingBusy"
-                        />
-                    </div>
-                    <div>
-                        <label class="block mb-2 font-medium"
-                            >Second Amount (cents)</label
-                        >
-                        <InputField
-                            id="deposit2"
-                            v-model="microDeposit2"
-                            variant="number"
-                            inputClass="w-full"
-                            placeholder="e.g., 45"
-                            :min="1"
-                            :max="99"
-                            :disabled="verifyingBusy"
-                        />
+                        <InputGroup class="w-full">
+                            <InputGroupAddon>SM</InputGroupAddon>
+
+                            <Inputtext
+                                id="descriptor_code"
+                                v-model="descriptorCode"
+                                class="w-full"
+                                :disabled="verifyingBusy"
+                            />
+                        </InputGroup>
                     </div>
                 </div>
-                <p class="text-sm font-bold mt-2">
-                    Enter the exact amounts Stripe deposited into your bank
-                    account in cents. For example, if you see 0.23 USD, enter 23
+                <p class="text-sm font-bold">
+                    The deposit will appear with a description like "SM1234".
+                    Only enter the characters after "SM" (for example: 1234) in
+                    the field.
                 </p>
             </div>
 
