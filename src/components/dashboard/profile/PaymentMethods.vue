@@ -153,7 +153,7 @@ const savePaymentMethod = async () => {
                 toast.add({
                     severity: 'success',
                     summary: 'Bank Account Added',
-                    detail: 'Your bank account has been added successfully. Two micro-deposits will be sent to your account within 1-2 business days. Please verify the amounts once received.',
+                    detail: 'Your bank account has been added successfully.',
                     life: 8000
                 });
             } else {
