@@ -361,7 +361,7 @@ const handleViewClick = (data) => {
                             </p>
                         </div>
 
-                        <div>
+                        <div v-if="selectedPayment.invoices.length">
                             <p class="text-sm text-gray-500 mb-1">Invoices</p>
                             <div
                                 v-for="invoice in selectedPayment.invoices"
