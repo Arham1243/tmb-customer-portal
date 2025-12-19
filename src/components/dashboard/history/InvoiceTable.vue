@@ -1,9 +1,10 @@
 <script setup>
-import { onBeforeMount, ref, watch } from 'vue';
+import { onBeforeMount, ref, watch, computed } from 'vue';
 import { useCustomerStore, useSessionStore } from '@/stores';
 import { PaginationOptions, SortFilterOptions } from '@/config';
 import { useHelpers } from '@/composables';
 import { useReportExport } from '@/composables/useReportExport';
+import { paymentTypes } from '@/config/enums';
 
 const sessionStore = useSessionStore();
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}`;
@@ -25,6 +26,14 @@ const filters = ref({
 });
 const showPaymentDialog = ref(false);
 const selectedPayment = ref(null);
+
+const totalDifferenceAmount = computed(() => {
+    if (!selectedPayment.value?.invoices?.length) return 0;
+
+    return selectedPayment.value.invoices.reduce((sum, invoice) => {
+        return sum + (Number(invoice.pivot?.difference_amount) || 0);
+    }, 0);
+});
 
 onBeforeMount(async () => {
     await getItems();
@@ -316,86 +325,125 @@ const handleViewClick = (data) => {
         v-model:visible="showPaymentDialog"
         modal
         header="Payment Details"
-        :style="{ width: '500px' }"
+        :style="{ width: '800px' }"
     >
-        <div v-if="selectedPayment" class="space-y-5">
-            <!-- Top Section -->
-            <Card class="!bg-gray-100">
-                <template #title>
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3">
-                        Payment Summary
-                    </h3>
-                </template>
+        <div v-if="selectedPayment">
+            <Card>
                 <template #content>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-sm text-gray-500 mb-0">Amount</p>
-                            <p class="text-lg font-bold">
-                                {{ moneyFormat(selectedPayment.amount) }}
-                            </p>
-                        </div>
-
-                        <div>
-                            <p class="text-sm text-gray-500 mb-0">Status</p>
-                            <div class="mt-1">
-                                <StatusTag :status="selectedPayment.status" />
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </Card>
-
-            <!-- Details Card -->
-            <Card class="!bg-gray-100">
-                <template #title>
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3">
-                        Details
-                    </h3>
-                </template>
-                <template #content>
-                    <div class="grid gap-y-2">
-                        <div>
-                            <p class="text-sm text-gray-500 mb-0">Date</p>
-                            <p class="text-base font-medium">
+                    <h5 class="mb-4 font-semibold text-lg">Receipt Details</h5>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Receipt Date</span>
+                            <span class="font-semibold text-gray-900">
                                 {{ formatDate(selectedPayment.date) }}
-                            </p>
+                            </span>
                         </div>
-
-                        <div v-if="selectedPayment.invoices.length > 0">
-                            <p class="text-sm text-gray-500 mb-1">Invoices</p>
-                            <div
-                                v-for="invoice in selectedPayment.invoices"
-                                :key="invoice.invoice_number"
-                                class="flex justify-between mb-3"
-                            >
-                                <span class="font-medium text-gray-700">{{
-                                    invoice.invoice_number
-                                }}</span>
-                                <span>{{
-                                    moneyFormat(invoice.applied_amount)
-                                }}</span>
-                            </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Amount Received</span>
+                            <span class="font-semibold text-gray-900">
+                                {{ moneyFormat(selectedPayment.amount) }}
+                            </span>
                         </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-0">
-                                Payment Method
-                            </p>
-                            <p class="text-base font-medium capitalize">
-                                {{ selectedPayment.paymentMethod?.name }}
-                            </p>
-                        </div>
-
-                        <div v-if="selectedPayment.reference_number">
-                            <p class="text-sm text-gray-500 mb-0">
-                                Reference Number
-                            </p>
-                            <p class="text-base font-medium">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Reference Number</span>
+                            <span class="font-semibold text-gray-900">
                                 {{ selectedPayment.reference_number }}
-                            </p>
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Payment Type</span>
+                            <span class="font-semibold text-gray-900">
+                                {{
+                                    paymentTypes.find(
+                                        (p) =>
+                                            p.code ===
+                                            selectedPayment.payment_type
+                                    )?.name || '-'
+                                }}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Payment Method</span>
+                            <span class="font-semibold text-gray-900">
+                                {{ selectedPayment.paymentMethod?.name ?? '-' }}
+                            </span>
+                        </div>
+                        <div
+                            class="flex justify-between"
+                            v-if="totalDifferenceAmount > 0"
+                        >
+                            <span class="text-gray-600">Difference Amount</span>
+                            <span class="font-semibold text-gray-900">
+                                {{ moneyFormat(totalDifferenceAmount) ?? '-' }}
+                            </span>
+                        </div>
+                        <div
+                            class="flex justify-between"
+                            v-if="selectedPayment.deductionType"
+                        >
+                            <span class="text-gray-600">Deduction Type</span>
+                            <span class="font-semibold text-gray-900">
+                                {{ selectedPayment.deductionType?.name ?? '-' }}
+                            </span>
+                        </div>
+                        <div
+                            class="flex justify-between"
+                            v-if="selectedPayment.status"
+                        >
+                            <span class="text-gray-600">Status</span>
+                            <StatusTag :status="selectedPayment.status" />
                         </div>
                     </div>
                 </template>
             </Card>
+
+            <div v-if="selectedPayment.invoices?.length" class="mt-6">
+                <Card>
+                    <template #content>
+                        <h5 class="mb-4 font-semibold text-lg">
+                            Invoice Details
+                        </h5>
+                        <DataTable
+                            :value="selectedPayment.invoices"
+                            class="text-sm"
+                        >
+                            <Column
+                                field="invoice_number"
+                                header="Invoice Number"
+                            >
+                                <template #body="{ data }">
+                                    {{ data.invoice_number ?? '-' }}
+                                </template>
+                            </Column>
+                            <Column field="invoice_date" header="Invoice Date">
+                                <template #body="{ data }">
+                                    {{ formatDate(data.invoice_date) }}
+                                </template>
+                            </Column>
+                            <Column
+                                field="total_billable"
+                                header="Total Amount"
+                                class="amount-column"
+                            >
+                                <template #body="{ data }">
+                                    {{ moneyFormat(data.total_billable) }}
+                                </template>
+                            </Column>
+                            <Column
+                                field="pivot"
+                                header="Applied Amount"
+                                class="amount-column"
+                            >
+                                <template #body="{ data }">
+                                    {{
+                                        moneyFormat(data.pivot?.payment_applied)
+                                    }}
+                                </template>
+                            </Column>
+                        </DataTable>
+                    </template>
+                </Card>
+            </div>
         </div>
 
         <template #footer>
