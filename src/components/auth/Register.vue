@@ -72,23 +72,24 @@ const register = async () => {
             device_info: deviceInfo
         };
 
-        await authStore.register(payload);
+        const response = await authStore.register(payload);
 
-        const url = 'Dashboard';
-        router.push(url);
-    } catch (e) {
-        if (
-            e.response?.status === 400 &&
-            e.response?.data?.challenge === 'OTP_REQUIRED'
-        ) {
+        // Check if OTP verification is required
+        if (response?.challenge === 'OTP_REQUIRED') {
             sessionStore.setEmail(credentials.value.email);
             router.push({
                 name: 'CodeVerification',
                 query: {
-                    session: e.response.data.session
+                    session: response.session
                 }
             });
+            return;
         }
+
+        const url = 'Dashboard';
+        router.push(url);
+    } catch (e) {
+        // Other errors are handled by globalStore
     } finally {
         loading.value = false;
     }
