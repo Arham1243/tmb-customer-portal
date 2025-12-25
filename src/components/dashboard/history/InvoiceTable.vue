@@ -388,6 +388,18 @@ const handleViewClick = (data) => {
                         </div>
                         <div
                             class="flex justify-between"
+                            v-if="
+                                totalDifferenceAmount > 0 &&
+                                !selectedPayment.deductionType
+                            "
+                        >
+                            <span class="text-gray-600">Difference Type</span>
+                            <span class="font-semibold text-gray-900">
+                                Prepayment
+                            </span>
+                        </div>
+                        <div
+                            class="flex justify-between"
                             v-if="selectedPayment.status"
                         >
                             <span class="text-gray-600">Status</span>
