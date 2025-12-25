@@ -28,11 +28,10 @@ const showPaymentDialog = ref(false);
 const selectedPayment = ref(null);
 
 const totalDifferenceAmount = computed(() => {
-    if (!selectedPayment.value?.invoices?.length) return 0;
+    const invoices = selectedPayment.value?.invoices;
+    if (!invoices?.length) return 0;
 
-    return selectedPayment.value.invoices.reduce((sum, invoice) => {
-        return sum + (Number(invoice.pivot?.difference_amount) || 0);
-    }, 0);
+    return Number(invoices[0].pivot?.difference_amount) || 0;
 });
 
 onBeforeMount(async () => {
