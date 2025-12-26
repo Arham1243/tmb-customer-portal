@@ -82,7 +82,7 @@ export const changeProfilePassword = (payload) => {
     );
 };
 
-export const verifyMicroDeposits = (payload) => {
+export const verifyBankAccount = (payload) => {
     return AxiosService.post(
         `${BASE_URL}/customer-portal/payment-methods/verify`,
         payload

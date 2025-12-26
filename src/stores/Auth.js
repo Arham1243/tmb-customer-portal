@@ -9,6 +9,12 @@ export const useAuthStore = defineStore('AuthStore', () => {
     const login = (payload) => {
         return globalStore.actionWrapper(async () => {
             const res = await AuthService.login(payload);
+
+            // Check if OTP verification is required
+            if (res.data.challenge === 'OTP_REQUIRED') {
+                return res.data;
+            }
+
             sessionStore.startUserSession(res.data.data);
             return res.data;
         });
@@ -17,6 +23,12 @@ export const useAuthStore = defineStore('AuthStore', () => {
     const register = (payload) => {
         return globalStore.actionWrapper(async () => {
             const res = await AuthService.register(payload);
+
+            // Check if OTP verification is required
+            if (res.data.challenge === 'OTP_REQUIRED') {
+                return res.data;
+            }
+
             sessionStore.startUserSession(res.data.data);
             return res.data;
         });

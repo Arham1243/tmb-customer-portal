@@ -119,9 +119,11 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
-    const verifyMicroDeposits = async (payload) => {
-        const res = await CustomerService.verifyMicroDeposits(payload);
-        return res.data;
+    const verifyBankAccount = async (payload) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await CustomerService.verifyBankAccount(payload);
+            return res.data;
+        });
     };
 
     const removePaymentMethod = (paymentMethodId) => {
@@ -147,7 +149,7 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         attachPaymentMethod,
         checkout,
         changeProfilePassword,
-        verifyMicroDeposits,
+        verifyBankAccount,
         removePaymentMethod
     };
 });
