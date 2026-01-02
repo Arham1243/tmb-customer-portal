@@ -18,6 +18,16 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
+    const searchTransactionHistories = (payload, params) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await CustomerService.searchTransactionHistories(
+                payload,
+                params
+            );
+            return res.data;
+        });
+    };
+
     const exportReport = (resource, payload) => {
         return globalStore.actionWrapper(async () => {
             const res = await CustomerService.exportReport(resource, payload);
@@ -75,10 +85,15 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
-    const attachPaymentMethod = (paymentMethodId) => {
+    const attachPaymentMethod = (
+        paymentMethodId,
+        requiresVerification = false
+    ) => {
         return globalStore.actionWrapper(async () => {
-            const res =
-                await CustomerService.attachPaymentMethod(paymentMethodId);
+            const res = await CustomerService.attachPaymentMethod(
+                paymentMethodId,
+                requiresVerification
+            );
             return res.data;
         });
     };
@@ -104,10 +119,26 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         });
     };
 
+    const verifyBankAccount = async (payload) => {
+        return globalStore.actionWrapper(async () => {
+            const res = await CustomerService.verifyBankAccount(payload);
+            return res.data;
+        });
+    };
+
+    const removePaymentMethod = (paymentMethodId) => {
+        return globalStore.actionWrapper(async () => {
+            const res =
+                await CustomerService.removePaymentMethod(paymentMethodId);
+            return res.data;
+        });
+    };
+
     return {
         selectedInvoices,
         setSelectedInvoices,
         searchInvoices,
+        searchTransactionHistories,
         exportReport,
         listContactTypes,
         searchContacts,
@@ -117,6 +148,8 @@ export const useCustomerStore = defineStore('CustomerStore', () => {
         createSetupIntent,
         attachPaymentMethod,
         checkout,
-        changeProfilePassword
+        changeProfilePassword,
+        verifyBankAccount,
+        removePaymentMethod
     };
 });

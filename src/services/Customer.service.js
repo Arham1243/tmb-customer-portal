@@ -7,6 +7,16 @@ export const searchInvoices = (payload, params) => {
     });
 };
 
+export const searchTransactionHistories = (payload, params) => {
+    return AxiosService.post(
+        `${BASE_URL}/customer-portal/transaction-histories/search`,
+        payload,
+        {
+            params
+        }
+    );
+};
+
 export const listContactTypes = (payload, params) => {
     return AxiosService.post(`${BASE_URL}/contact-types/list`, payload, {
         params
@@ -38,11 +48,15 @@ export const createSetupIntent = (payload) => {
     );
 };
 
-export const attachPaymentMethod = (paymentMethodId) => {
+export const attachPaymentMethod = (
+    paymentMethodId,
+    requiresVerification = false
+) => {
     return AxiosService.post(
         `${BASE_URL}/customer-portal/payment-methods/attach`,
         {
-            payment_method_id: paymentMethodId
+            payment_method_id: paymentMethodId,
+            requires_verification: requiresVerification
         }
     );
 };
@@ -65,5 +79,21 @@ export const changeProfilePassword = (payload) => {
     return AxiosService.post(
         `${BASE_URL}/customer-portal/auth/change-profile-password`,
         payload
+    );
+};
+
+export const verifyBankAccount = (payload) => {
+    return AxiosService.post(
+        `${BASE_URL}/customer-portal/payment-methods/verify`,
+        payload
+    );
+};
+
+export const removePaymentMethod = (paymentMethodId) => {
+    return AxiosService.delete(
+        `${BASE_URL}/customer-portal/payment-methods/remove`,
+        {
+            data: { payment_method_id: paymentMethodId }
+        }
     );
 };

@@ -19,10 +19,16 @@ const canSave = ref(false);
 const loadingMethods = ref(false);
 const loadingIntent = ref(false);
 const busy = ref(false);
+const showVerifyDialog = ref(false);
+const verifyingPaymentMethod = ref(null);
+const descriptorCode = ref('');
+const verficationError = ref('');
+const verifyingBusy = ref(false);
+const showDeleteDialog = ref(false);
+const deletingPaymentMethod = ref(null);
+const deletingBusy = ref(false);
 
-const paymentTypeOptions = [
-    { name: 'Direct Bank transfer', code: 'us_bank_account' }
-];
+const paymentTypeOptions = [{ name: 'ACH', code: 'us_bank_account' }];
 
 const openAddForm = async () => {
     showAddForm.value = true;
@@ -30,7 +36,6 @@ const openAddForm = async () => {
 };
 
 const closeAddForm = () => {
-    selectedType.value = '';
     if (element.value) {
         element.value.unmount();
         element.value = null;
@@ -49,18 +54,16 @@ const fetchPaymentMethods = async () => {
 };
 
 const createSetupIntent = async () => {
-    if (!selectedType.value) return;
     loadingIntent.value = true;
     try {
-        // Unmount previous element if it exists
+        // Unmount previous element if exists
         if (element.value) {
             element.value.unmount();
             element.value = null;
         }
 
-        const res = await customerStore.createSetupIntent({
-            type: selectedType.value
-        });
+        // Call your backend endpoint
+        const res = await customerStore.createSetupIntent();
         setupClientSecret.value = res.client_secret;
 
         stripe.value = await stripePromise;
@@ -68,68 +71,24 @@ const createSetupIntent = async () => {
             clientSecret: setupClientSecret.value
         });
 
-        if (!elements.value) {
-            toast.add({
-                severity: 'error',
-                summary: 'Oops!',
-                detail: 'Stripe Elements failed to initialize',
-                life: 3000
-            });
-            return;
-        }
-
-        if (selectedType.value === 'card') {
-            element.value = elements.value.create('card', {
-                style: {
-                    base: {
-                        color: '#111827',
-                        fontFamily: 'Inter, system-ui, sans-serif',
-                        fontSize: '16px',
-                        '::placeholder': { color: '#9ca3af' }
-                    },
-                    invalid: {
-                        color: '#dc2626'
-                    }
-                }
-            });
-
-            element.value.mount('#stripe-element');
-            element.value.on('change', (event) => {
-                canSave.value = event.complete;
-            });
-        } else if (selectedType.value === 'us_bank_account') {
-            // For ACH, use the Payment Element which handles US Bank Account
-            element.value = elements.value.create('payment', {
-                layout: {
-                    type: 'accordion',
-                    defaultCollapsed: false,
-                    radios: false,
-                    spacedAccordionItems: true
-                }
-            });
-
-            if (!element.value) {
-                toast.add({
-                    severity: 'error',
-                    summary: 'Oops!',
-                    detail: 'Failed to create payment element',
-                    life: 3000
-                });
-                return;
+        // Mount Payment Element
+        element.value = elements.value.create('payment', {
+            layout: {
+                type: 'accordion',
+                defaultCollapsed: false,
+                radios: false,
+                spacedAccordionItems: true
             }
+        });
 
-            element.value.mount('#stripe-element');
+        element.value.mount('#stripe-element');
 
-            element.value.on('ready', () => {
-                console.log('Payment element ready');
-            });
-
-            element.value.on('change', (event) => {
-                canSave.value = event.complete;
-            });
-        }
+        element.value.on('ready', () => console.log('Payment element ready'));
+        element.value.on('change', (event) => {
+            canSave.value = event.complete;
+        });
     } catch (err) {
-        console.error('Error creating setup intent:', err);
+        console.error('Error creating bank setup intent:', err);
         toast.add({
             severity: 'error',
             summary: 'Error',
@@ -174,32 +133,38 @@ const savePaymentMethod = async () => {
             return;
         }
 
-        // Check if setup requires action (for ACH micro-deposits)
-        if (
+        // Determine if verification is required
+        const requiresVerification =
             result.setupIntent.status === 'requires_action' ||
-            result.setupIntent.status === 'requires_confirmation'
-        ) {
-            toast.add({
-                severity: 'info',
-                summary: 'Verification Required',
-                detail: 'Please verify your bank account to complete setup.',
-                life: 5000
-            });
-            return;
+            result.setupIntent.status === 'requires_confirmation';
+
+        // For ACH accounts, pass verification status to backend
+        if (selectedType.value === 'us_bank_account') {
+            await customerStore.attachPaymentMethod(
+                result.setupIntent.payment_method,
+                requiresVerification
+            );
+
+            closeAddForm();
+            await fetchPaymentMethods();
+
+            // Show appropriate message based on verification requirement
+            if (requiresVerification) {
+                toast.add({
+                    severity: 'success',
+                    summary: 'Bank Account Added',
+                    detail: 'Your bank account has been added successfully.',
+                    life: 8000
+                });
+            } else {
+                toast.add({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: 'Bank account verified and added successfully',
+                    life: 3000
+                });
+            }
         }
-
-        await customerStore.attachPaymentMethod(
-            result.setupIntent.payment_method
-        );
-
-        await fetchPaymentMethods();
-        closeAddForm();
-        toast.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Payment method added successfully',
-            life: 3000
-        });
     } catch (err) {
         console.error('Error saving payment method:', err);
         toast.add({
@@ -210,6 +175,104 @@ const savePaymentMethod = async () => {
         });
     } finally {
         busy.value = false;
+    }
+};
+
+const openVerifyDialog = (pm) => {
+    verifyingPaymentMethod.value = pm;
+    descriptorCode.value = '';
+    verficationError.value = '';
+    showVerifyDialog.value = true;
+};
+
+const closeVerifyDialog = () => {
+    showVerifyDialog.value = false;
+    verifyingPaymentMethod.value = null;
+    descriptorCode.value = '';
+};
+
+const submitVerification = async () => {
+    verifyingBusy.value = true;
+    verficationError.value = '';
+    try {
+        await customerStore.verifyBankAccount({
+            payment_method_id: verifyingPaymentMethod.value.id,
+            descriptor_code: 'SM' + descriptorCode.value
+        });
+
+        toast.add({
+            severity: 'success',
+            summary: 'Verified',
+            detail: 'Bank account verified successfully',
+            life: 3000
+        });
+
+        closeVerifyDialog();
+        await fetchPaymentMethods();
+    } catch (err) {
+        if (err.response?.status === 400) {
+            closeVerifyDialog();
+            await fetchPaymentMethods();
+        } else {
+            verficationError.value = err.response?.data?.message;
+        }
+    } finally {
+        verifyingBusy.value = false;
+    }
+};
+
+const openDeleteDialog = (pm) => {
+    deletingPaymentMethod.value = pm;
+    showDeleteDialog.value = true;
+};
+
+const closeDeleteDialog = () => {
+    showDeleteDialog.value = false;
+    deletingPaymentMethod.value = null;
+};
+
+const confirmDelete = async () => {
+    deletingBusy.value = true;
+    try {
+        await customerStore.removePaymentMethod(deletingPaymentMethod.value.id);
+
+        toast.add({
+            severity: 'success',
+            summary: 'Removed',
+            detail: 'Payment method removed successfully',
+            life: 3000
+        });
+
+        closeDeleteDialog();
+        await fetchPaymentMethods();
+    } finally {
+        deletingBusy.value = false;
+    }
+};
+
+const getStatusSeverity = (status) => {
+    switch (status) {
+        case 'verified':
+            return 'success';
+        case 'pending':
+            return 'warn';
+        case 'failed':
+            return 'danger';
+        default:
+            return 'secondary';
+    }
+};
+
+const getStatusLabel = (status) => {
+    switch (status) {
+        case 'verified':
+            return 'Verified';
+        case 'pending':
+            return 'Pending Verification';
+        case 'failed':
+            return 'Verification Failed';
+        default:
+            return status;
     }
 };
 
@@ -243,16 +306,18 @@ onBeforeMount(() => {
                 <Loader />
             </div>
 
-            <div class="flex items-center justify-between mb-4">
-                <h4 class="text-xl font-semibold">New Payment Method</h4>
-                <Button
-                    icon="pi pi-times"
-                    rounded
-                    text
-                    severity="secondary"
-                    @click="closeAddForm"
-                    :disabled="busy"
-                />
+            <div class="mb-5">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xl font-semibold">New Payment Method</h4>
+                    <Button
+                        icon="pi pi-times"
+                        rounded
+                        text
+                        severity="secondary"
+                        @click="closeAddForm"
+                        :disabled="busy"
+                    />
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
@@ -273,6 +338,10 @@ onBeforeMount(() => {
                 </div>
 
                 <div class="col-span-12" v-if="selectedType">
+                    <p class="mb-2">
+                        Please search your bank, if can't be found in the list
+                        below
+                    </p>
                     <div
                         id="stripe-element"
                         :class="
@@ -307,7 +376,7 @@ onBeforeMount(() => {
             >
                 <template v-if="pm.type === 'card'">
                     <i class="pi pi-credit-card text-gray-400 !text-3xl"></i>
-                    <div>
+                    <div class="flex-1">
                         <div class="font-semibold text-[1.1rem]">
                             Credit Card - {{ pm.brand.toUpperCase() }}
                         </div>
@@ -315,16 +384,82 @@ onBeforeMount(() => {
                             ending in ••••{{ pm.last4 }}
                         </div>
                     </div>
+                    <div class="flex items-center gap-2">
+                        <Button
+                            icon="pi pi-trash"
+                            severity="danger"
+                            text
+                            rounded
+                            @click="openDeleteDialog(pm)"
+                        />
+                    </div>
                 </template>
                 <template v-else-if="pm.type === 'us_bank_account'">
                     <i class="pi pi-building text-gray-400 !text-3xl"></i>
-                    <div>
-                        <div class="font-semibold text-[1.1rem]">
-                            Bank Account - {{ pm.bank_name || 'ACH' }}
+                    <div class="flex-1">
+                        <div
+                            class="font-semibold text-[1.1rem] flex items-center gap-2"
+                        >
+                            <span
+                                >Bank Account -
+                                {{ pm.bank_name || 'ACH' }}</span
+                            >
+                            <Tag
+                                :value="getStatusLabel(pm.status)"
+                                :severity="getStatusSeverity(pm.status)"
+                            />
                         </div>
                         <div class="text-sm text-gray-500">
                             ending in ••••{{ pm.last4 }}
                         </div>
+                        <div
+                            v-if="pm.status === 'pending'"
+                            class="mt-2 text-sm text-blue-600"
+                        >
+                            <i class="pi pi-info-circle mr-1"></i>
+                            To ensure the security of your account, we will
+                            initiate a micro-deposit (less than $1.00) to your
+                            linked bank account. This transaction typically
+                            appears within 1-2 business days.
+                            <div class="mt-2">
+                                <span class="font-semibold"
+                                    >Action Required:</span
+                                >
+                                The deposit will contain a unique descriptor
+                                code beginning with SM. Please record this code,
+                                as it is required to finalize your bank account
+                                verification.
+                            </div>
+                        </div>
+                        <div
+                            v-if="pm.status === 'failed'"
+                            class="mt-2 text-sm text-red-600"
+                        >
+                            <i class="pi pi-exclamation-triangle mr-1"></i>
+                            Verification failed. Please check the amounts and
+                            try again.
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Button
+                            v-if="pm.status === 'pending'"
+                            label="Verify"
+                            size="small"
+                            @click="openVerifyDialog(pm)"
+                        />
+                        <Button
+                            v-if="pm.status === 'failed'"
+                            label="Retry Verification"
+                            size="small"
+                            @click="openVerifyDialog(pm)"
+                        />
+                        <Button
+                            icon="pi pi-trash"
+                            severity="danger"
+                            text
+                            rounded
+                            @click="openDeleteDialog(pm)"
+                        />
                     </div>
                 </template>
             </div>
@@ -336,5 +471,136 @@ onBeforeMount(() => {
         >
             No payment methods found
         </div>
+
+        <!-- Verify Micro-Deposits Dialog -->
+        <Dialog
+            v-model:visible="showVerifyDialog"
+            modal
+            :header="
+                verifyingPaymentMethod?.status === 'failed'
+                    ? 'Retry Bank Account Verification'
+                    : 'Verify Bank Account'
+            "
+            :style="{ width: '500px' }"
+            :closable="!verifyingBusy"
+        >
+            <Message
+                v-if="verficationError"
+                severity="error"
+                closable
+                class="mb-5"
+            >
+                <div v-html="verficationError"></div>
+            </Message>
+
+            <div class="space-y-4 mb-5">
+                <p
+                    v-if="verifyingPaymentMethod?.status === 'failed'"
+                    class="text-red-600 font-medium"
+                >
+                    <i class="pi pi-exclamation-triangle mr-1"></i>
+                    Previous verification attempt failed. Please double check
+                    the code and try again.
+                </p>
+
+                <p class="text-gray-600">
+                    Stripe sent a small deposit to this bank account. To verify
+                    this account, please confirm the 6-digit code in the
+                    statement descriptor of this deposit.
+                </p>
+
+                <div class="grid gap-4">
+                    <div>
+                        <label
+                            for="descriptor_code"
+                            class="block mb-2 font-medium"
+                            >Descriptor code</label
+                        >
+                        <InputGroup class="w-full">
+                            <InputGroupAddon>SM</InputGroupAddon>
+
+                            <Inputtext
+                                id="descriptor_code"
+                                v-model="descriptorCode"
+                                class="w-full"
+                                :disabled="verifyingBusy"
+                            />
+                        </InputGroup>
+                    </div>
+                </div>
+                <p class="text-sm font-bold">
+                    The deposit will appear with a description like "SM1234".
+                    Only enter the characters after "SM" (for example: 1234) in
+                    the field.
+                </p>
+            </div>
+
+            <template #footer>
+                <Button
+                    label="Cancel"
+                    severity="secondary"
+                    @click="closeVerifyDialog"
+                    :disabled="verifyingBusy"
+                />
+                <Button
+                    label="Verify"
+                    @click="submitVerification"
+                    :loading="verifyingBusy"
+                    :disabled="verifyingBusy"
+                />
+            </template>
+        </Dialog>
+
+        <!-- Delete Confirmation Dialog -->
+        <Dialog
+            v-model:visible="showDeleteDialog"
+            modal
+            header="Remove Payment Method"
+            :style="{ width: '450px' }"
+            :closable="!deletingBusy"
+        >
+            <div class="space-y-4 mb-5">
+                <p class="text-gray-600">
+                    Are you sure you want to remove this payment method?
+                </p>
+                <div
+                    v-if="deletingPaymentMethod"
+                    class="bg-gray-50 p-4 rounded-lg"
+                >
+                    <div class="font-semibold">
+                        <template v-if="deletingPaymentMethod.type === 'card'">
+                            Credit Card -
+                            {{ deletingPaymentMethod.brand.toUpperCase() }}
+                        </template>
+                        <template v-else>
+                            Bank Account -
+                            {{ deletingPaymentMethod.bank_name || 'ACH' }}
+                        </template>
+                    </div>
+                    <div class="text-sm text-gray-500 mt-1">
+                        ending in ••••{{ deletingPaymentMethod.last4 }}
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500">
+                    This action cannot be undone.
+                </p>
+            </div>
+
+            <template #footer>
+                <Button
+                    label="Cancel"
+                    severity="secondary"
+                    @click="closeDeleteDialog"
+                    :disabled="deletingBusy"
+                />
+                <Button
+                    label="Remove"
+                    severity="danger"
+                    @click="confirmDelete"
+                    :loading="deletingBusy"
+                    :disabled="deletingBusy"
+                />
+            </template>
+        </Dialog>
     </div>
 </template>

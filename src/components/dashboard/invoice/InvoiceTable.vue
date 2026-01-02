@@ -16,6 +16,7 @@ const totalRecords = ref();
 const currentUser = sessionStore?.customer;
 const totalOutstanding = sessionStore?.info?.total_outstanding;
 const selectedItems = ref([]);
+const searchText = ref('');
 
 onBeforeMount(async () => {
     await getItems();
@@ -30,6 +31,11 @@ const totalSelected = computed(() => {
 
 const onPageChange = (event) => {
     pagination.updatePageParams(event);
+    getItems();
+};
+
+const search = async () => {
+    pagination.resetPageParams();
     getItems();
 };
 
@@ -59,7 +65,8 @@ const getItems = async () => {
         loading.value = true;
         const params = { ...pagination.getPageParams() };
         const payload = {
-            filters: makeFiltersPayload()
+            filters: makeFiltersPayload(),
+            search: { value: searchText.value }
         };
         const res = await customerStore.searchInvoices(payload, params);
         items.value = res.data;
@@ -114,7 +121,6 @@ const pushRoute = (routeName) => {
                 }}</strong></Message
             >
             <BaseTable
-                selectionMode="multiple"
                 v-model:selection="selectedItems"
                 :value="items"
                 :page="pagination.page"
@@ -123,6 +129,16 @@ const pushRoute = (routeName) => {
                 :loading="loading"
                 @page="onPageChange"
             >
+                <template #header>
+                    <div class="flex justify-end mb-5">
+                        <Search
+                            v-model="searchText"
+                            @search="search"
+                            placeholder="Search by invoice #"
+                            class="w-full sm:w-1/2 md:w-1/3 lg:w-1/3"
+                        />
+                    </div>
+                </template>
                 <template #empty> No invoices found. </template>
 
                 <Column selectionMode="multiple" headerStyle="width: 3rem" />

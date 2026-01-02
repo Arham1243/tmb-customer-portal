@@ -51,6 +51,11 @@ export default [
                 path: 'password/reset',
                 name: 'New Password Setup',
                 component: () => import('@/views/auth/PasswordResetForm.vue')
+            },
+            {
+                path: 'verify/email',
+                name: 'CodeVerification',
+                component: () => import('@/views/auth/VerifyEmailCode.vue')
             }
         ]
     },
