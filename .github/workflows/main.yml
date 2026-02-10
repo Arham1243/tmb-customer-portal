@@ -1,8 +1,8 @@
 on:
     push:
-        branches: [main, demo, staging]
+        branches: [main, demo, staging, promedic]
     pull_request:
-        branches: [main, demo, staging]
+        branches: [main, demo, staging, promedic]
 
 name: 🚀 Deploy website on push
 
@@ -22,6 +22,16 @@ jobs:
                       ftp_server_secret: FTP_SERVER
                       ftp_username_secret: FTP_USERNAME
                       ftp_password_secret: FTP_PASSWORD
+
+                    # Promedic Environment
+                    - branch: promedic
+                      environment: promedic
+                      api_base_url: https://promedic.servicore.io/backend
+                      app_url: https://promedic.servicore.io
+                      stripe_key_secret: STRIPE_KEY_DEMO
+                      ftp_server_secret: FTP_SERVER_PROMEDIC
+                      ftp_username_secret: FTP_USERNAME_PROMEDIC
+                      ftp_password_secret: FTP_PASSWORD_PROMEDIC
 
                     # Demo Environment
                     - branch: demo
@@ -45,11 +55,39 @@ jobs:
 
         steps:
             - name: 🚚 Get latest code
-              if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', matrix.branch)
+              if: |
+                  (
+                    github.event_name == 'push' &&
+                    github.ref == format('refs/heads/{0}', matrix.branch)
+                  ) ||
+                  (
+                    github.event_name == 'pull_request' &&
+                    (
+                      (matrix.branch == 'staging'   && contains(github.event.pull_request.labels.*.name, 'Deploy to Staging')) ||
+                      (matrix.branch == 'demo'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Demo')) ||
+                      (matrix.branch == 'promedic'  && contains(github.event.pull_request.labels.*.name, 'Deploy to Promedic')) ||
+                      (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main'))
+                    )
+                  )
               uses: actions/checkout@v2
+              with:
+                  ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref }}
 
             - name: 📦 Build Vue app for ${{ matrix.environment }}
-              if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', matrix.branch)
+              if: |
+                  (
+                    github.event_name == 'push' &&
+                    github.ref == format('refs/heads/{0}', matrix.branch)
+                  ) ||
+                  (
+                    github.event_name == 'pull_request' &&
+                    (
+                      (matrix.branch == 'staging'   && contains(github.event.pull_request.labels.*.name, 'Deploy to Staging')) ||
+                      (matrix.branch == 'demo'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Demo')) ||
+                      (matrix.branch == 'promedic'  && contains(github.event.pull_request.labels.*.name, 'Deploy to Promedic')) ||
+                      (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main'))
+                    )
+                  )
               run: |
                   npm install
                   npm run build
@@ -59,7 +97,20 @@ jobs:
                   VITE_STRIPE_KEY: ${{ secrets[matrix.stripe_key_secret] }}
 
             - name: 📂 Sync frontend build to ${{ matrix.environment }}
-              if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', matrix.branch)
+              if: |
+                  (
+                    github.event_name == 'push' &&
+                    github.ref == format('refs/heads/{0}', matrix.branch)
+                  ) ||
+                  (
+                    github.event_name == 'pull_request' &&
+                    (
+                      (matrix.branch == 'staging'   && contains(github.event.pull_request.labels.*.name, 'Deploy to Staging')) ||
+                      (matrix.branch == 'demo'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Demo')) ||
+                      (matrix.branch == 'promedic'  && contains(github.event.pull_request.labels.*.name, 'Deploy to Promedic')) ||
+                      (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main'))
+                    )
+                  )
               uses: SamKirkland/FTP-Deploy-Action@v4.3.5
               with:
                   server: ${{ secrets[matrix.ftp_server_secret] }}
