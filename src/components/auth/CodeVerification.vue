@@ -42,8 +42,7 @@ const verifyCode = async () => {
 
         await authStore.verifyOtp(payload);
         sessionStorage.removeItem('email');
-        const url = 'Dashboard';
-        router.push(url);
+        router.push({ name: 'SelectCustomer' });
     } catch (e) {
         console.error('OTP verification failed:', e);
     } finally {

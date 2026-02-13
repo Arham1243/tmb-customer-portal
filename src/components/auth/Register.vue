@@ -86,8 +86,7 @@ const register = async () => {
             return;
         }
 
-        const url = 'Dashboard';
-        router.push(url);
+        router.push({ name: 'SelectCustomer' });
     } catch (e) {
         // Other errors are handled by globalStore
     } finally {

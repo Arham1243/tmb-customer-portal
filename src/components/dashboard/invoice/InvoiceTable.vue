@@ -2,7 +2,7 @@
 import { onBeforeMount, ref, computed } from 'vue';
 import { useCustomerStore, useSessionStore } from '@/stores';
 import { PaginationOptions } from '@/config';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useHelpers } from '@/composables';
 
 const { formatDate, moneyFormat } = useHelpers();
@@ -12,6 +12,7 @@ const pagination = new PaginationOptions();
 const loading = ref(false);
 const items = ref([]);
 const router = useRouter();
+const route = useRoute();
 const totalRecords = ref();
 const currentUser = sessionStore?.customer;
 const totalOutstanding = sessionStore?.info?.total_outstanding;
@@ -82,7 +83,10 @@ const goToCheckout = () => {
 };
 
 const pushRoute = (routeName) => {
-    router.push({ name: routeName });
+    router.push({
+        name: routeName,
+        params: { customerId: route.params.customerId }
+    });
 };
 </script>
 

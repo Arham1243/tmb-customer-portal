@@ -17,15 +17,19 @@ const logout = async () => {
         await authStore.logout();
     } finally {
         sessionStore.clearSessionState();
-        pushRoute('Login');
+        router.push({ name: 'Login' });
         busy.value = false;
     }
 };
 
-const pushRoute = (name, params = {}) => {
-    router.push({ name, params });
+const pushRoute = (name) => {
+    router.push({ name, params: { customerId: route.params.customerId } });
 };
 const isActive = (name) => route.name === name;
+
+const switchCustomer = () => {
+    router.push({ name: 'SelectCustomer' });
+};
 </script>
 
 <template>
@@ -74,7 +78,7 @@ const isActive = (name) => route.name === name;
                 </nav>
             </div>
 
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
                 <div class="text-right hidden sm:block">
                     <div class="font-medium text-gray-800">
                         {{ currentUser.name }}
@@ -83,6 +87,16 @@ const isActive = (name) => route.name === name;
                         {{ currentUser.email }}
                     </div>
                 </div>
+                <Button
+                    v-if="sessionStore.customerCount > 1"
+                    icon="pi pi-chevron-down"
+                    iconPos="right"
+                    :label="customer?.name"
+                    @click="switchCustomer"
+                    severity="secondary"
+                    text
+                    :disabled="busy"
+                />
                 <Button
                     icon="pi pi-sign-out"
                     label="Sign Out"
