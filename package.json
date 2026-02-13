@@ -15,7 +15,7 @@
         "@stripe/stripe-js": "^8.2.0",
         "axios": "^1.11.0",
         "chart.js": "^4.3.0",
-        "husky": "^8.0.0",
+        "husky": "^9.1.7",
         "lint-staged": "^16.1.2",
         "lodash-es": "^4.17.21",
         "moment-timezone": "^0.6.0",
