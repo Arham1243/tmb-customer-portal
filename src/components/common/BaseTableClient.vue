@@ -73,6 +73,8 @@ defineExpose({ paginatedData });
 
 <template>
     <DataTable
+        resizableColumns
+        columnResizeMode="expand"
         v-bind="$attrs"
         :value="props.value"
         :data-key="dataKey"

@@ -48,6 +48,8 @@ const onPageChange = (event) => {
 
 <template>
     <DataTable
+        resizableColumns
+        columnResizeMode="expand"
         v-bind="$attrs"
         :lazy="lazy"
         :value="value"
