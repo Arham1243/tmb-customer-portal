@@ -1,7 +1,7 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import { useAuthStore, useSessionStore } from '@/stores';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import OtpInput from 'vue3-otp-input';
 import { getDeviceFingerprint, getDeviceInfo } from '@/utils/deviceFingerprint';
@@ -16,6 +16,12 @@ const isResendingOtp = ref(false);
 const otpKey = ref('');
 const code = ref('');
 const session = ref(route.query.session);
+
+watch(code, (newValue) => {
+    if (newValue.length === 6 && !loading.value) {
+        verifyCode();
+    }
+});
 
 const verificationMessage = computed(() => {
     const contactInfo = sessionStore.getEmail();
