@@ -21,8 +21,13 @@ export const resetPassword = (payload) => {
     return AxiosService.post(`${BASE_URL}/password/reset`, payload);
 };
 
-export const me = () => {
-    return AxiosService.get(`${BASE_URL}/me`);
+export const me = (customerId) => {
+    const params = customerId ? `?customer_id=${customerId}` : '';
+    return AxiosService.get(`${BASE_URL}/me${params}`);
+};
+
+export const myCustomers = () => {
+    return AxiosService.get(`${BASE_URL}/my-customers`);
 };
 
 export const meCustomer = () => {

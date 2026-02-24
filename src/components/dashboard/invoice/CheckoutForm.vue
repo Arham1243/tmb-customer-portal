@@ -2,11 +2,12 @@
 import { ref, onBeforeMount, computed, watch } from 'vue';
 import { useCustomerStore } from '@/stores';
 import { useHelpers } from '@/composables';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 const toast = useToast();
 
 const router = useRouter();
+const route = useRoute();
 const { moneyFormat } = useHelpers();
 const customerStore = useCustomerStore();
 
@@ -20,7 +21,10 @@ const selectedPaymentMethod = ref(null);
 const selectedInvoices = customerStore.selectedInvoices;
 
 const pushRoute = (routeName) => {
-    router.push({ name: routeName });
+    router.push({
+        name: routeName,
+        params: { customerId: route.params.customerId }
+    });
 };
 
 onBeforeMount(async () => {
@@ -29,7 +33,10 @@ onBeforeMount(async () => {
         !selectedInvoices.length ||
         selectedInvoices.every((i) => i.payment_status === 'paid')
     ) {
-        router.replace({ name: 'Dashboard' });
+        router.replace({
+            name: 'Dashboard',
+            params: { customerId: route.params.customerId }
+        });
         return; // stop execution
     }
 
@@ -44,7 +51,10 @@ onBeforeMount(async () => {
             detail: 'Please add a payment method from your profile before checking out.',
             life: 5000
         });
-        router.push({ name: 'Profile' });
+        router.push({
+            name: 'Profile',
+            params: { customerId: route.params.customerId }
+        });
         return;
     }
 

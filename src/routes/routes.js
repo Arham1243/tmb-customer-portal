@@ -3,16 +3,21 @@ import AuthLayout from '@/layout/AuthLayout.vue';
 
 export default [
     {
-        path: '/',
+        path: '/select-customer',
+        name: 'SelectCustomer',
+        component: () => import('@/views/auth/SelectCustomer.vue')
+    },
+    {
+        path: '/:customerId',
         component: AppLayout,
         children: [
             {
-                path: '/',
+                path: '',
                 name: 'Dashboard',
                 component: () => import('@/views/dashboard/index.vue')
             },
             {
-                path: '/checkout',
+                path: 'checkout',
                 name: 'Checkout',
                 component: () => import('@/views/dashboard/checkout.vue')
             },

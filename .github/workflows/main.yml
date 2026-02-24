@@ -1,8 +1,8 @@
 on:
     push:
-        branches: [main, demo, staging, promedic]
+        branches: [main, demo, staging, promedic, app]
     pull_request:
-        branches: [main, demo, staging, promedic]
+        branches: [main, demo, staging, promedic, app]
 
 name: 🚀 Deploy website on push
 
@@ -53,6 +53,16 @@ jobs:
                       ftp_username_secret: FTP_USERNAME_STAGING
                       ftp_password_secret: FTP_PASSWORD_STAGING
 
+                    # App Environment
+                    - branch: app
+                      environment: app
+                      api_base_url: https://app.servicore.io/backend
+                      app_url: https://app.servicore.io
+                      stripe_key_secret: STRIPE_KEY_DEMO
+                      ftp_server_secret: FTP_SERVER_APP
+                      ftp_username_secret: FTP_USERNAME_APP
+                      ftp_password_secret: FTP_PASSWORD_APP
+
         steps:
             - name: 🚚 Get latest code
               if: |
@@ -66,7 +76,8 @@ jobs:
                       (matrix.branch == 'staging'   && contains(github.event.pull_request.labels.*.name, 'Deploy to Staging')) ||
                       (matrix.branch == 'demo'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Demo')) ||
                       (matrix.branch == 'promedic'  && contains(github.event.pull_request.labels.*.name, 'Deploy to Promedic')) ||
-                      (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main'))
+                      (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main')) ||
+                      (matrix.branch == 'app'      && contains(github.event.pull_request.labels.*.name, 'Deploy to App'))
                     )
                   )
               uses: actions/checkout@v2
@@ -85,7 +96,8 @@ jobs:
                       (matrix.branch == 'staging'   && contains(github.event.pull_request.labels.*.name, 'Deploy to Staging')) ||
                       (matrix.branch == 'demo'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Demo')) ||
                       (matrix.branch == 'promedic'  && contains(github.event.pull_request.labels.*.name, 'Deploy to Promedic')) ||
-                      (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main'))
+                      (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main')) ||
+                      (matrix.branch == 'app'      && contains(github.event.pull_request.labels.*.name, 'Deploy to App'))
                     )
                   )
               run: |
@@ -108,7 +120,8 @@ jobs:
                       (matrix.branch == 'staging'   && contains(github.event.pull_request.labels.*.name, 'Deploy to Staging')) ||
                       (matrix.branch == 'demo'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Demo')) ||
                       (matrix.branch == 'promedic'  && contains(github.event.pull_request.labels.*.name, 'Deploy to Promedic')) ||
-                      (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main'))
+                      (matrix.branch == 'main'      && contains(github.event.pull_request.labels.*.name, 'Deploy to Main')) ||
+                      (matrix.branch == 'app'      && contains(github.event.pull_request.labels.*.name, 'Deploy to App'))
                     )
                   )
               uses: SamKirkland/FTP-Deploy-Action@v4.3.5

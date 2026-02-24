@@ -12,6 +12,7 @@ router.beforeEach(async (to, from, next) => {
     const { access_token: accessToken } = sessionStore.getCookie() || {};
 
     const isAuth = to.path.startsWith('/auth');
+    const isSelectCustomer = to.name === 'SelectCustomer';
 
     if (!accessToken) {
         if (isAuth) {
@@ -24,7 +25,7 @@ router.beforeEach(async (to, from, next) => {
     } else if (accessToken && !isAuth) {
         next();
     } else {
-        next({ name: 'Dashboard' });
+        next({ name: 'SelectCustomer' });
     }
 });
 

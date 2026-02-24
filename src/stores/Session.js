@@ -10,6 +10,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
     const myCompany = ref({});
     const info = ref({});
     const customer = ref(null);
+    const customerCount = ref(0);
 
     const startUserSession = (data) => {
         const date = new Date();
@@ -49,12 +50,13 @@ export const useSessionStore = defineStore('SessionStore', () => {
         return sessionStorage.getItem('email');
     };
 
-    const me = async () => {
+    const me = async (customerId) => {
         try {
-            const res = (await AuthService.me()).data;
+            const res = (await AuthService.me(customerId)).data;
             user.value = res.data;
             customer.value = res.customer;
             myCompany.value = res.my_company;
+            customerCount.value = res.customer_count;
             info.value = res.info;
             return user.value;
         } catch (error) {
@@ -82,6 +84,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
         customerCompany,
         myCompany,
         info,
+        customerCount,
         setEmail,
         setCookie,
         getCookie,
