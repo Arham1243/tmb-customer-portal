@@ -10,7 +10,6 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const sessionStore = useSessionStore();
-const company = sessionStore.customerCompany;
 const globalStore = useGlobalStore();
 
 const loading = ref(false);
@@ -86,14 +85,6 @@ const handleLoadCallback = (token) => {
 <template>
     <div>
         <div class="text-center">
-            <img
-                :src="company?.logo_url"
-                :alt="company?.name"
-                class="mx-auto company-logo mb-2"
-            />
-            <h2 class="text-lg !text-gray-600 font-bold mb-2">
-                {{ company?.name }}
-            </h2>
             <h4 class="text-3xl font-bold mb-2">Customer Portal</h4>
             <p class="text-gray-700 mb-12">Sign in to your account</p>
         </div>
