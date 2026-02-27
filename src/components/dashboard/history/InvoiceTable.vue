@@ -159,8 +159,8 @@ const getItems = async () => {
 };
 
 const openInvoicePreview = (data) => {
-    if (data.id) {
-        window.open(`${API_BASE_URL}/invoice/${data.id}/preview`, '_blank');
+    if (data.uuid) {
+        window.open(`${API_BASE_URL}/invoice/${data.uuid}/preview`, '_blank');
     }
 };
 
