@@ -19,7 +19,7 @@ onBeforeMount(async () => {
         const res = await AuthService.myCustomers();
         customers.value = res.data.data;
         if (customers.value.length === 1) {
-            goToPortal(customers.value[0].id);
+            goToPortal(customers.value[0].uuid);
             return;
         }
     } catch (e) {
@@ -87,7 +87,7 @@ const goToPortal = (customerId) => {
                         <Button
                             label="Access Portal"
                             size="small"
-                            @click="goToPortal(customer.id)"
+                            @click="goToPortal(customer.uuid)"
                         />
                     </div>
                 </div>
