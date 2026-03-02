@@ -20,7 +20,6 @@ router.beforeEach(async (to, from, next) => {
     // Not logged in
     if (!accessToken) {
         if (isAuth) return next();
-        sessionStore.setIntended(to.fullPath);
         return next({ name: 'Login' });
     }
 
