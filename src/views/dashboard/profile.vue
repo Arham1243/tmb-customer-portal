@@ -1,12 +1,16 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import CustomerForm from '@/components/dashboard/profile/CustomerForm.vue';
 import ChangePassword from '@/components/dashboard/profile/ChangePassword.vue';
+import PaymentMethods from '@/components/dashboard/profile/PaymentMethods.vue';
+import ContactsDetails from '@/components/dashboard/profile/ContactsDetails.vue';
 import { useSessionStore } from '@/stores';
+
 const sessionStore = useSessionStore();
 const customer = sessionStore.customer;
 const activeTab = ref('customer');
 const customerDetails = ref(customer);
+const menuLimits = computed(() => sessionStore.menuLimits || []);
 </script>
 
 <template>
@@ -39,6 +43,11 @@ const customerDetails = ref(customer);
                                 @click="activeTab = 'contacts'"
                             />
                             <Button
+                                v-if="
+                                    menuLimits.includes(
+                                        'online_payment_via_customer_portal'
+                                    )
+                                "
                                 icon="pi pi-credit-card"
                                 class="!justify-start !py-4"
                                 :class="{
