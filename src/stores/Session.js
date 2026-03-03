@@ -11,6 +11,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
     const info = ref({});
     const customer = ref(null);
     const customerCount = ref(0);
+    const menuLimits = ref([]);
 
     const startUserSession = (data) => {
         const date = new Date();
@@ -56,6 +57,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
             user.value = res.data;
             customer.value = res.customer;
             myCompany.value = res.my_company;
+            menuLimits.value = res.plan_menus;
             customerCount.value = res.customer_count;
             info.value = res.info;
             return user.value;
@@ -80,6 +82,7 @@ export const useSessionStore = defineStore('SessionStore', () => {
         me,
         meCustomer,
         user,
+        menuLimits,
         customer,
         customerCompany,
         myCompany,

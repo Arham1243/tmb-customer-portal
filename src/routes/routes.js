@@ -19,6 +19,7 @@ export default [
             {
                 path: 'checkout',
                 name: 'Checkout',
+                menu_flag: 'online_payment_via_customer_portal',
                 component: () => import('@/views/dashboard/checkout.vue')
             },
             {

@@ -1,9 +1,12 @@
 <script setup>
 import { ref, onBeforeMount, watch } from 'vue';
 import Header from './Header.vue';
-import { useSessionStore } from '@/stores';
+import { useSessionStore, useGlobalStore } from '@/stores';
 import { useRoute, useRouter } from 'vue-router';
+import Forbidden from '@/views/errors/Forbidden.vue';
+
 const sessionStore = useSessionStore();
+const globalStore = useGlobalStore();
 const route = useRoute();
 const router = useRouter();
 const loading = ref(true);
@@ -38,7 +41,8 @@ watch(
 </script>
 
 <template>
-    <div class="layout-container">
+    <Forbidden v-if="globalStore.routeForbidden" />
+    <div class="layout-container" v-else>
         <div
             class="w-screen h-screen flex justify-center items-center"
             v-if="loading"

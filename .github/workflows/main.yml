@@ -56,7 +56,7 @@ jobs:
                     # App Environment
                     - branch: app
                       environment: app
-                      api_base_url: https://app.servicore.io/backend
+                      api_base_url: https://app.servicore.io
                       app_url: https://app.servicore.io
                       stripe_key_secret: STRIPE_KEY_DEMO
                       ftp_server_secret: FTP_SERVER_APP

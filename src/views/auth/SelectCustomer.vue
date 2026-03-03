@@ -1,11 +1,12 @@
 <script setup>
 import { ref, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
-import { useSessionStore } from '@/stores';
+import { useSessionStore, useGlobalStore } from '@/stores';
 import { AuthService } from '@/services';
 
 const router = useRouter();
 const sessionStore = useSessionStore();
+const globalStore = useGlobalStore();
 const company = sessionStore.customerCompany;
 
 const loading = ref(true);
@@ -16,12 +17,14 @@ onBeforeMount(async () => {
         if (!sessionStore.customerCompany) {
             await sessionStore.meCustomer();
         }
-        const res = await AuthService.myCustomers();
-        customers.value = res.data.data;
-        if (customers.value.length === 1) {
-            goToPortal(customers.value[0].id);
-            return;
-        }
+        globalStore.actionWrapper(async () => {
+            const res = await AuthService.myCustomers();
+            customers.value = res.data.data;
+            if (customers.value.length === 1) {
+                goToPortal(customers.value[0].uuid);
+                return;
+            }
+        });
     } catch (e) {
         console.error('Failed to load customers:', e);
     } finally {
@@ -87,7 +90,7 @@ const goToPortal = (customerId) => {
                         <Button
                             label="Access Portal"
                             size="small"
-                            @click="goToPortal(customer.id)"
+                            @click="goToPortal(customer.uuid)"
                         />
                     </div>
                 </div>

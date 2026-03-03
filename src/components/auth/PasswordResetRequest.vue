@@ -7,7 +7,6 @@ const router = useRouter();
 const authStore = useAuthStore();
 const sessionStore = useSessionStore();
 const globalStore = useGlobalStore();
-const company = sessionStore.customerCompany;
 const loading = ref(false);
 const email = ref(null);
 
@@ -38,14 +37,6 @@ const goBack = () => {
 <template>
     <div>
         <div class="text-center">
-            <img
-                :src="company?.logo_url"
-                :alt="company?.name"
-                class="mx-auto company-logo mb-2"
-            />
-            <h2 class="text-lg !text-gray-600 font-bold mb-2">
-                {{ company?.name }}
-            </h2>
             <h4 class="text-3xl font-bold mb-2">Forgot Password</h4>
             <p class="text-gray-700 mb-12">
                 Enter your email address and we'll send you a link to reset your

@@ -23,6 +23,8 @@ onBeforeMount(async () => {
     await getItems();
 });
 
+const menuLimits = computed(() => sessionStore.menuLimits || []);
+
 const totalSelected = computed(() => {
     return selectedItems.value.reduce(
         (total, item) => total + item.outstanding_balance,
@@ -105,6 +107,7 @@ const pushRoute = (routeName) => {
         </template>
         <template #actions>
             <Button
+                v-if="menuLimits.includes('online_payment_via_customer_portal')"
                 label="Pay now"
                 size="medium"
                 :disabled="selectedItems.length === 0 || loading"
@@ -147,6 +150,11 @@ const pushRoute = (routeName) => {
                 <template #empty> No invoices found. </template>
 
                 <Column
+                    v-if="
+                        menuLimits.includes(
+                            'online_payment_via_customer_portal'
+                        )
+                    "
                     selectionMode="multiple"
                     headerStyle="width: 3rem"
                     columnKey="selection"
